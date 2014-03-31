@@ -8,7 +8,7 @@
 		<groupId>org.chinasb.common</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	
-	<artifactId>common-utility</artifactId>
-	<name>common-utility</name>
+
+	<artifactId>common-lock</artifactId>
+	<name>common-lock</name>
 </project>
