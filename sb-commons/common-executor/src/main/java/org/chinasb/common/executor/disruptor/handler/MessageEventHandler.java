@@ -20,7 +20,7 @@ public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHand
         try {
             event.task.run();
         } catch (Exception e) {
-            LOG.error("EXECUTE TASK ERROR");
+            LOG.error("EXECUTE TASK ERROR:", e);
         }
     }
 
@@ -29,7 +29,7 @@ public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHand
         try {
             event.task.run();
         } catch (Exception e) {
-            LOG.error("EXECUTE TASK ERROR");
+            LOG.error("EXECUTE TASK ERROR:", e);
         }
     }
 }
