@@ -1,4 +1,4 @@
-package org.chinasb.framework.mvn;
+package org.chinasb.common.basedb;
 
 /**
  * Hello world!
