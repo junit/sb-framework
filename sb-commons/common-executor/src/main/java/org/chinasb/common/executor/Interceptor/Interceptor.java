@@ -1,6 +1,5 @@
 package org.chinasb.common.executor.Interceptor;
 
-import org.chinasb.common.executor.context.Session;
 
 /**
  * 指令拦截
@@ -8,14 +7,14 @@ import org.chinasb.common.executor.context.Session;
  */
 public interface Interceptor {
     /**
-     * @param session
+     * @param message
      * @return true:继续流程;false:流程中断
      */
-    public boolean before(Session session);
+    public boolean before(Object message);
 
     /**
-     * @param session
+     * @param message
      * @return true:继续流程;false:流程中断
      */
-    public boolean after(Session session);
+    public boolean after(Object message);
 }
