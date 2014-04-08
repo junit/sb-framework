@@ -33,7 +33,7 @@ public class DefaultCommandResolver implements CommandResolver {
     }
 
     @Override
-    public void execute(Object... message) throws Exception {
+    public void execute(Object message) throws Exception {
         // global interceptor
         if (null != globalInterceptors) {
             for (Interceptor interceptor : globalInterceptors) {
@@ -53,13 +53,13 @@ public class DefaultCommandResolver implements CommandResolver {
             }
         }
         // invoke
-        Object[] params = new Object[paramTypes.length];
-        for (int i = 0; i < paramTypes.length; i++) {
-            if (paramTypes[i].isInstance(message)) {
-                params[i] = message;
-            }
-        }
-        m.invoke(target, params);
+//        Object[] params = new Object[paramTypes.length];
+//        for (int i = 0; i < paramTypes.length; i++) {
+//            if (paramTypes[i].isInstance(message)) {
+//                params[i] = message;
+//            }
+//        }
+        m.invoke(target, message);
         // method interceptor
         if (null != methodInterceptors) {
             for (Interceptor interceptor : methodInterceptors) {

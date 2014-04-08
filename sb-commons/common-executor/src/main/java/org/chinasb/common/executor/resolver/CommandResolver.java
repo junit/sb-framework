@@ -6,5 +6,5 @@ package org.chinasb.common.executor.resolver;
  * @author zhujuan
  */
 public interface CommandResolver {
-    public void execute(Object... message) throws Exception;
+    public void execute(Object message) throws Exception;
 }
