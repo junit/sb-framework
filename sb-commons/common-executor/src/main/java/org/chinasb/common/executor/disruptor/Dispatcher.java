@@ -11,8 +11,9 @@ public interface Dispatcher {
     /**
      * 任务分发
      * @param task
+     * @return
      */
-    public void dispatch(Runnable task);
+    public boolean dispatch(Runnable task);
 
     /**
      * 停止

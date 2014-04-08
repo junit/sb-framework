@@ -10,6 +10,7 @@ import org.chinasb.common.executor.disruptor.event.MessageEvent;
 import org.chinasb.common.executor.disruptor.handler.MessageEventHandler;
 
 import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.InsufficientCapacityException;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
@@ -85,13 +86,18 @@ public class DispatcherImpl implements Dispatcher {
     }
 
     @Override
-    public void dispatch(Runnable task) {
-        long sequence = ringBuffer.next();
+    public boolean dispatch(Runnable task) {
         try {
-            MessageEvent event = ringBuffer.get(sequence);
-            event.task = task;
-        } finally {
-            ringBuffer.publish(sequence);
+            final long sequence = ringBuffer.tryNext();
+            try {
+                MessageEvent event = ringBuffer.get(sequence);
+                event.task = task;
+            } finally {
+                ringBuffer.publish(sequence);
+            }
+            return true;
+        } catch (InsufficientCapacityException e) {
+            return false;
         }
     }
     
