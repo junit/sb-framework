@@ -11,4 +11,11 @@
 	
 	<artifactId>common-utility</artifactId>
 	<name>common-utility</name>
+	<dependencies>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.8.3</version>
+		</dependency>
+	</dependencies>
 </project>
