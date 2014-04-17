@@ -7,15 +7,29 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
+/**
+ * 锁工具类
+ * @author zhujuan
+ */
 public class LockUtils {
     private final static ObjectLockHolder holder = new ObjectLockHolder();
 
+    /**
+     * 获得一条锁链
+     * @param objects
+     * @return
+     */
     public static ChainLock getLock(Object... objects) {
         List<? extends Lock> locks = loadLocks(objects);
         return new ChainLock(locks);
     }
 
-    public static List<? extends Lock> loadLocks(Object... objects) {
+    /**
+     * 加载对象锁，处理锁排序
+     * @param objects
+     * @return
+     */
+    private static List<? extends Lock> loadLocks(Object... objects) {
         List<ObjectLock> locks = new ArrayList<ObjectLock>();
         for (Object obj : objects) {
             ObjectLock lock = holder.getLock(obj);

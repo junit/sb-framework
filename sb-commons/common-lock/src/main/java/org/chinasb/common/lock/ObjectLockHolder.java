@@ -7,6 +7,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+/**
+ * 对象锁缓存
+ * @author zhujuan
+ */
 public class ObjectLockHolder {
     private final LoadingCache<Class, Holder> HOLDERS = CacheBuilder.newBuilder().maximumSize(1000)
             .build(new CacheLoader<Class, Holder>() {
@@ -18,6 +22,9 @@ public class ObjectLockHolder {
 
     public class Holder {
         private final Class clz;
+        /**
+         * 用于当对象的hash值一样时使用（或实现自Entity接口的getIdentity()一样时使用）
+         */
         private final Lock tieLock = new ReentrantLock();
 
         private final LoadingCache<Object, ObjectLock> locks = CacheBuilder.newBuilder().weakKeys()
@@ -49,15 +56,30 @@ public class ObjectLockHolder {
         return HOLDERS.getUnchecked(clz);
     }
     
+    /**
+     * 获得一个对象锁
+     * @param object
+     * @return
+     */
     public ObjectLock getLock(Object object) {
         return getHolder(object.getClass()).getLock(object);
     }
     
+    /**
+     * 获得该类的加时锁(tie-breaker)
+     * @param clz
+     * @return
+     */
     public Lock getTieLock(Class clz) {
         return getHolder(clz).getTieLock();
     }
 
-    public long count(Class<?> clz) {
+    /**
+     * 获得该类的对象锁缓存数量
+     * @param clz
+     * @return
+     */
+    public long count(Class clz) {
         Holder holder = HOLDERS.getIfPresent(clz);
         if (holder != null) {
             return holder.count();

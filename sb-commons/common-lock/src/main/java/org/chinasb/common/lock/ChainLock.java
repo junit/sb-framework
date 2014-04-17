@@ -3,10 +3,18 @@ package org.chinasb.common.lock;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+/**
+ * 锁链
+ * @author zhujuan
+ */
 public class ChainLock {
     private final Lock current;
     private final ChainLock next;
 
+    /**
+     * 构造一条锁链
+     * @param locks
+     */
     public ChainLock(List<? extends Lock> locks) {
         if ((locks == null) || (locks.isEmpty())) {
             throw new IllegalArgumentException("构建锁链的锁数量不能为0");
@@ -19,6 +27,9 @@ public class ChainLock {
         }
     }
 
+    /**
+     * 加锁
+     */
     public void lock() {
         this.current.lock();
         if (this.next != null) {
@@ -26,6 +37,9 @@ public class ChainLock {
         }
     }
 
+    /**
+     * 解锁
+     */
     public void unlock() {
         if (this.next != null) {
             this.next.unlock();
