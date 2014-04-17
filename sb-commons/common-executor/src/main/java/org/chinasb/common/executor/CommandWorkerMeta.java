@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
 
-
 /**
  * 指令工作器元数据
  * @author zhujuan
