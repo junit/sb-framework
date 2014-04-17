@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.manager.impl;
+package org.chinasb.common.executor;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -20,11 +20,7 @@ import org.chinasb.common.executor.annotation.CommandWorker;
 import org.chinasb.common.executor.annotation.interceptors.ClassInterceptors;
 import org.chinasb.common.executor.annotation.interceptors.MethodInterceptors;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
-import org.chinasb.common.executor.configuration.CommandWorkerMeta;
 import org.chinasb.common.executor.context.AppContext;
-import org.chinasb.common.executor.manager.CommandWorkerManager;
-import org.chinasb.common.executor.resolver.CommandResolver;
-import org.chinasb.common.executor.resolver.impl.DefaultCommandResolver;
 
 /**
  * 指令工作器管理

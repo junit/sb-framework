@@ -1,7 +1,7 @@
-package org.chinasb.common.executor.disruptor;
+package org.chinasb.common.executor;
 
 /**
- * 任务分发接口
+ * 任务调度
  * @author zhujuan
  */
 public interface Dispatcher {
@@ -9,7 +9,7 @@ public interface Dispatcher {
     static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors() * 2;
     
     /**
-     * 任务分发
+     * 任务调度
      * @param task
      * @return
      */

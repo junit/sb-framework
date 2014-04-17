@@ -1,9 +1,7 @@
-package org.chinasb.common.executor.manager;
-
-import org.chinasb.common.executor.resolver.CommandResolver;
+package org.chinasb.common.executor;
 
 /**
- * 指令工作器管理接口
+ * 指令工作器管理
  * @author zhujuan
  */
 public interface CommandWorkerManager {

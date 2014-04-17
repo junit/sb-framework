@@ -1,6 +1,6 @@
-package org.chinasb.common.executor.disruptor.handler;
+package org.chinasb.common.executor.handler;
 
-import org.chinasb.common.executor.disruptor.event.MessageEvent;
+import org.chinasb.common.executor.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +8,7 @@ import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.WorkHandler;
 
 /**
- * 消息处理器抽象
+ * 消息处理器
  * @author zhujuan
  */
 public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHandler<MessageEvent> {

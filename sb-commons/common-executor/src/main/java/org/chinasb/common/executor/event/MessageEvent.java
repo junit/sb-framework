@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.disruptor.event;
+package org.chinasb.common.executor.event;
 
 import com.lmax.disruptor.EventFactory;
 
@@ -8,7 +8,7 @@ import com.lmax.disruptor.EventFactory;
  */
 public class MessageEvent {
     
-    /** 事件对象 */
+    /** 事件任务 */
     public Runnable task;
     
     /** 事件工厂 */

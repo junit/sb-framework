@@ -1,10 +1,9 @@
-package org.chinasb.common.executor.resolver.impl;
+package org.chinasb.common.executor;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
 import org.chinasb.common.executor.Interceptor.Interceptor;
-import org.chinasb.common.executor.resolver.CommandResolver;
 
 /**
  * 指令解析器
@@ -53,12 +52,6 @@ public class DefaultCommandResolver implements CommandResolver {
             }
         }
         // invoke
-//        Object[] params = new Object[paramTypes.length];
-//        for (int i = 0; i < paramTypes.length; i++) {
-//            if (paramTypes[i].isInstance(message)) {
-//                params[i] = message;
-//            }
-//        }
         m.invoke(target, message);
         // method interceptor
         if (null != methodInterceptors) {

@@ -1,13 +1,12 @@
-package org.chinasb.common.executor.disruptor.impl;
+package org.chinasb.common.executor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.chinasb.common.executor.disruptor.Dispatcher;
-import org.chinasb.common.executor.disruptor.event.MessageEvent;
-import org.chinasb.common.executor.disruptor.handler.MessageEventHandler;
+import org.chinasb.common.executor.event.MessageEvent;
+import org.chinasb.common.executor.handler.MessageEventHandler;
 
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
@@ -16,30 +15,30 @@ import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 
 /**
- * 任务分发器
+ * 任务调度器
  * @author zhujuan
  */
-public class DispatcherImpl implements Dispatcher {
+public class DefaultDispatcher implements Dispatcher {
     private final Disruptor<MessageEvent> disruptor;
     private final RingBuffer<MessageEvent> ringBuffer;
     
-    public DispatcherImpl() {
+    public DefaultDispatcher() {
         this(1, null, BUFFER_SIZE);
     }
     
-    public DispatcherImpl(final String executorName) {
+    public DefaultDispatcher(final String executorName) {
         this(1, executorName, BUFFER_SIZE);
     }
     
-    public DispatcherImpl(final int maxThreads) {
+    public DefaultDispatcher(final int maxThreads) {
         this(maxThreads, null, BUFFER_SIZE);
     }
 
-    public DispatcherImpl(final int maxThreads, final String executorName) {
+    public DefaultDispatcher(final int maxThreads, final String executorName) {
         this(maxThreads, executorName, BUFFER_SIZE);
     }
 
-    public DispatcherImpl(final int maxThreads, final String executorName, int bufferSize) {
+    public DefaultDispatcher(final int maxThreads, final String executorName, int bufferSize) {
         if ((bufferSize < 0) || (bufferSize & (bufferSize - 1)) != 0) {
             throw new IllegalArgumentException("bufferSize must be power of 2.");
         }

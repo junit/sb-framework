@@ -1,8 +1,7 @@
 package org.chinasb.common.executor.Interceptor;
 
-
 /**
- * 指令拦截
+ * 拦截
  * @author zhujuan
  */
 public interface Interceptor {

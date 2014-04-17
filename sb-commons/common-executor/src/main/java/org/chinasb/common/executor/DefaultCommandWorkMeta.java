@@ -1,11 +1,10 @@
-package org.chinasb.common.executor.configuration.impl;
+package org.chinasb.common.executor;
 
 import java.util.List;
 
 import org.apache.commons.digester3.Digester;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
 import org.chinasb.common.executor.configuration.CommandWorkerConfig;
-import org.chinasb.common.executor.configuration.CommandWorkerMeta;
 
 /**
  * 指令工作器元数据
