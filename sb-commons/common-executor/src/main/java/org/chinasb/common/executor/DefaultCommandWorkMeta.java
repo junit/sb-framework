@@ -13,6 +13,10 @@ import org.chinasb.common.executor.configuration.CommandWorkerConfig;
 public class DefaultCommandWorkMeta implements CommandWorkerMeta {
     private CommandWorkerConfig commandWorkerConfig;
 
+    /**
+     * 初始化指令工作器元数据配置
+     * @param configFilePath
+     */
     public DefaultCommandWorkMeta(String configFilePath) {
         Digester digester = new Digester();
         digester.setValidating(false);
