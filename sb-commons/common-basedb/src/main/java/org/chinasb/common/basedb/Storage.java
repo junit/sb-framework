@@ -22,7 +22,7 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.context.ApplicationContext;
 
 /**
- * 基础数据存储
+ * 基础数据仓库
  * @author zhujuan
  * @param <V>
  */
@@ -45,7 +45,7 @@ public class Storage<V> {
      */
     private Getter identifier;
     /**
-     * 索引访问器映射集合
+     * 索引访问器映射集合Map<索引名称,索引访问器>
      */
     private Map<String, IndexBuilder.IndexVisitor> indexVisitors;
     /**
@@ -53,7 +53,7 @@ public class Storage<V> {
      */
     private Map<Object, V> dataTable = new HashMap<Object, V>();
     /**
-     * 索引数据映射集合
+     * 索引数据映射集合Map<索引字段值域的组合键名, 唯一标识>
      */
     private Map<String, Object> indexTable = new HashMap<String, Object>();
     /**
@@ -110,8 +110,8 @@ public class Storage<V> {
 
     /**
      * 获得索引数据集合
-     * @param indexName
-     * @param indexValues
+     * @param indexName 索引名称
+     * @param indexValues 索引值
      * @return
      */
     public List<V> getIndex(String indexName, Object... indexValues) {
@@ -121,8 +121,8 @@ public class Storage<V> {
 
     /**
      * 获得索引数据的唯一标识集合
-     * @param indexName
-     * @param indexValues
+     * @param indexName 索引名称
+     * @param indexValues 索引值
      * @return
      */
     public List getIndexIdList(String indexName, Object... indexValues) {
@@ -132,7 +132,7 @@ public class Storage<V> {
 
     /**
      * 获得基础数据
-     * @param key
+     * @param key 唯一标识
      * @return
      */
     public V get(Object key) {
@@ -141,7 +141,7 @@ public class Storage<V> {
 
     /**
      * 获得基础数据集合
-     * @param idList
+     * @param idList 唯一标识集合
      * @return
      */
     public List<V> list(List idList) {
@@ -158,7 +158,7 @@ public class Storage<V> {
     }
 
     /**
-     * 获得基础数据集合
+     * 获得全部基础数据集合
      * @return
      */
     public Collection<V> listAll() {
@@ -166,7 +166,7 @@ public class Storage<V> {
     }
 
     /**
-     * 基础数据重新加载
+     * 基础数据仓库重新加载
      */
     public synchronized void reload() {
         try {
@@ -221,9 +221,9 @@ public class Storage<V> {
     }
 
     /**
-     * 获得索引键名
-     * @param name
-     * @param value
+     * 获得索引字段值域的组合键名(类名&索引名称#索引值1^索引值2)
+     * @param name 索引名称
+     * @param value 索引值
      * @return
      */
     private String getIndexKey(String name, Object... value) {
@@ -231,9 +231,9 @@ public class Storage<V> {
     }
 
     /**
-     * 增加基础数据
-     * @param value
-     * @param dataTable
+     * 增加基础数据到目标基础数据集合
+     * @param value 基础数据
+     * @param dataTable 目标基础数据集合
      * @return
      */
     private V offer(V value, Map<Object, V> dataTable) {
@@ -243,9 +243,9 @@ public class Storage<V> {
     }
 
     /**
-     * 索引基础数据
-     * @param value
-     * @param indexTable
+     * 为基础数据建立索引并增加到目标索引数据集合
+     * @param value 基础数据
+     * @param indexTable 目标索引数据集合
      */
     private void index(V value, Map<String, Object> indexTable) {
         for (IndexBuilder.IndexVisitor indexVisitor : indexVisitors.values()) {
@@ -257,10 +257,10 @@ public class Storage<V> {
     }
 
     /**
-     * 增加基础数据索引
-     * @param indexKey
-     * @param value
-     * @param indexTable
+     * 增加基础数据到目标索引数据集合
+     * @param indexKey 索引字段值域的组合键名
+     * @param value 基础数据
+     * @param indexTable 目标索引数据集合
      */
     private void addToIndexList(String indexKey, V value, Map<String, Object> indexTable) {
         List idList = (List) indexTable.get(indexKey);

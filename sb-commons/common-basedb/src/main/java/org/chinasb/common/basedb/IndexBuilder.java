@@ -72,7 +72,7 @@ public class IndexBuilder {
         }
 
         /**
-         * 附加字段
+         * 附加索引字段
          * @param fieldList
          */
         public void attachField(Field... fieldList) {
@@ -89,7 +89,7 @@ public class IndexBuilder {
         }
 
         /**
-         * 获得索引名称
+         * 获得索引访问器名称
          * @return
          */
         public String getName() {
@@ -97,7 +97,7 @@ public class IndexBuilder {
         }
 
         /**
-         * 获得字段集合
+         * 获得索引字段集合
          * @return
          */
         public List<Field> getFields() {
@@ -105,7 +105,7 @@ public class IndexBuilder {
         }
         
         /**
-         * 获得索引键名
+         * 获得索引字段值域的组合键名(类名&索引名称#索引值1^索引值2)
          * @param obj
          * @return
          */
