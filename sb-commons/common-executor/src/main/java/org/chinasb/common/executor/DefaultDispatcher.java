@@ -21,15 +21,15 @@ import com.lmax.disruptor.dsl.Disruptor;
 public class DefaultDispatcher implements Dispatcher {
     private final Disruptor<MessageEvent> disruptor;
     private final RingBuffer<MessageEvent> ringBuffer;
-    
+
     public DefaultDispatcher() {
         this(1, null, BUFFER_SIZE);
     }
-    
+
     public DefaultDispatcher(final String executorName) {
         this(1, executorName, BUFFER_SIZE);
     }
-    
+
     public DefaultDispatcher(final int maxThreads) {
         this(maxThreads, null, BUFFER_SIZE);
     }
@@ -43,29 +43,24 @@ public class DefaultDispatcher implements Dispatcher {
             throw new IllegalArgumentException("bufferSize must be power of 2.");
         }
         int threadPoolSize = Math.min(Math.abs(maxThreads), DEFAULT_IO_THREADS);
+        ThreadFactory threadFactory = new ThreadFactory() {
+            private AtomicInteger counter = new AtomicInteger(1);
+
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t =
+                        new Thread(r, (executorName == null ? "Disruptor" : executorName) + "-"
+                                + counter.getAndIncrement());
+                t.setDaemon(true);
+                t.setPriority(Thread.MAX_PRIORITY);
+                return t;
+            }
+        };
         ExecutorService executor;
-        if (executorName == null) {
-            if (threadPoolSize == 1) {
-                executor = Executors.newSingleThreadExecutor();
-            } else {
-                executor = Executors.newFixedThreadPool(threadPoolSize);
-            }
+        if (threadPoolSize == 1) {
+            executor = Executors.newSingleThreadExecutor(threadFactory);
         } else {
-            ThreadFactory threadFactory = new ThreadFactory() {
-                private AtomicInteger counter = new AtomicInteger(1);
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r, executorName + "-" + counter.getAndIncrement());
-                    t.setDaemon(true);
-                    t.setPriority(Thread.MAX_PRIORITY);
-                    return t;
-                }
-            };
-            if (threadPoolSize == 1) {
-                executor = Executors.newSingleThreadExecutor(threadFactory);
-            } else {
-                executor = Executors.newFixedThreadPool(threadPoolSize, threadFactory);
-            }
+            executor = Executors.newFixedThreadPool(threadPoolSize, threadFactory);
         }
         disruptor = new Disruptor<MessageEvent>(MessageEvent.EVENT_FACTORY, bufferSize, executor);
         if (threadPoolSize == 1) {
@@ -99,7 +94,7 @@ public class DefaultDispatcher implements Dispatcher {
             return false;
         }
     }
-    
+
     @Override
     public void shutdown() {
         disruptor.shutdown();
