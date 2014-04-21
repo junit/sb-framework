@@ -210,7 +210,7 @@ public class Storage<V> {
             dataTable.putAll(dataTable_copy);
             indexTable.putAll(indexTable_copy);
             idList.addAll(idList_copy);
-            logger.error("完成加载  {} 基础数据...", clazz.getName());
+            logger.info("完成加载  {} 基础数据...", clazz.getName());
         } catch (IOException e) {
             FormattingTuple message =
                     MessageFormatter.format("基础数据[{}]所对应的资源文件[{}]不存在!", clazz.getName(), location);

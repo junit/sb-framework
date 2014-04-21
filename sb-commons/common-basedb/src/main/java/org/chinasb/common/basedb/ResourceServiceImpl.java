@@ -65,7 +65,7 @@ public class ResourceServiceImpl
             log.error(message.getMessage());
         }
         fireBasedbReload();
-        log.error("基础数据加载完毕...");
+        log.info("基础数据加载完毕...");
     }
 
     /**
