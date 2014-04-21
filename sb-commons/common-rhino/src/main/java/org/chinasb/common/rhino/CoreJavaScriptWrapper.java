@@ -8,6 +8,7 @@ import org.mozilla.javascript.Scriptable;
 
 public class CoreJavaScriptWrapper implements JavascriptWrapper {
 
+    @Override
     public Object wrap(Context cx, Scriptable scope, Object javaObject, Class staticType) {
         if (javaObject instanceof Map) {
             return new NativeJavaMap(scope, javaObject, staticType);
