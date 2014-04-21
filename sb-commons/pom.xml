@@ -23,12 +23,13 @@
 	</developers>
 
 	<modules>
-		<module>common-utility</module>
-		<module>common-lock</module>
-		<module>common-executor</module>
 		<module>common-basedb</module>
-    	<module>common-socket</module>
-  	</modules>
+		<module>common-executor</module>
+		<module>common-lock</module>
+		<module>common-rhino</module>
+		<module>common-socket</module>
+		<module>common-utility</module>
+	</modules>
 
 	<dependencies>
 		<dependency>
