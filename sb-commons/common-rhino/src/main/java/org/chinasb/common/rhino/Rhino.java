@@ -19,7 +19,7 @@ import com.google.common.cache.LoadingCache;
 public class Rhino {
     private static final ThreadLocal<Scriptable> THREAD_LOCALS = new ThreadLocal<Scriptable>();
     private static final LoadingCache<String, Script> SCRIPT_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(10000).build(new CacheLoader<String, Script>() {
+            .maximumSize(500).build(new CacheLoader<String, Script>() {
                 @Override
                 public Script load(String expression) {
                     Context context = Context.enter();
