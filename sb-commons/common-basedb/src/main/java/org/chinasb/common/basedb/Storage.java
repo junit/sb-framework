@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ResourceUtils;
 
 /**
  * 基础数据仓库
@@ -170,7 +172,11 @@ public class Storage<V> {
      */
     public synchronized void reload() {
         try {
-            URL resource = getClass().getClassLoader().getResource(location);
+            URL resource = ClassUtils.getDefaultClassLoader().getResource(location);
+            File file = resource != null ? ResourceUtils.getFile(resource) : null;
+            if ((file == null) || (!file.exists())) {
+                resource = ResourceUtils.getURL(location);
+            }
             if (resource == null) {
                 FormattingTuple message =
                         MessageFormatter.format("基础数据[{}]所对应的资源文件[{}]不存在!", clazz.getName(),

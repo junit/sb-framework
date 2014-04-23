@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.chinasb.common.basedb.annotation.Resource;
 import org.chinasb.common.utility.PackageUtility;
@@ -35,11 +36,14 @@ public class ResourceServiceImpl
     @Autowired(required = false)
     @Qualifier("basedb_location")
     private String resourceLocation = "res_db" + File.separator;
+    @Qualifier("spring_refresh_event_reload")
+    private Boolean springRefreshEventReload = Boolean.valueOf(false);
     @Autowired(required = false)
     @Qualifier("basedb_package")
     private String resourcePackage = "org.chinasb.**.basedb.model";
     @Autowired
     private ApplicationContext applicationContext;
+    private static final AtomicBoolean REFRESH_EVENT_SWITCH = new AtomicBoolean(false);
 
     /**
      * 基础数据加载
@@ -221,20 +225,17 @@ public class ResourceServiceImpl
         fireBasedbReload();
     }
 
-    /**
-     * 处理上下文初始化或刷新事件
-     */
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        if ((event instanceof ContextRefreshedEvent)) {
-            try {
-                initialize();
-            } catch (Exception e) {
-                log.error("基础数据初始化出错!", e);
-            }
-            applicationContext.publishEvent(new ResourceReloadEvent(applicationContext));
+        if ((!springRefreshEventReload.booleanValue()) && (REFRESH_EVENT_SWITCH.get())) {
+            return;
         }
+        REFRESH_EVENT_SWITCH.set(true);
+        try {
+            initialize();
+        } catch (Exception e) {
+            log.error("基础数据初始化出错!", e);
+        }
+        applicationContext.publishEvent(new ResourceReloadEvent(applicationContext));
     }
-
-
 }
