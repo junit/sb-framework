@@ -30,7 +30,7 @@ public class LockUtils {
      * @return
      */
     private static List<? extends Lock> loadLocks(Object... objects) {
-        List<ObjectLock> locks = new ArrayList<ObjectLock>();
+        List<ObjectLock> locks = new ArrayList<ObjectLock>(objects.length);
         for (Object obj : objects) {
             ObjectLock lock = holder.getLock(obj);
             if ((lock != null) && (!(locks.contains(lock)))) {

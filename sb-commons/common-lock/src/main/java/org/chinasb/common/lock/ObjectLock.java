@@ -11,14 +11,13 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
     private static final Class<Entity> IENTITY_CLASS = Entity.class;
     private final Class clz;
     private final Comparable value;
-    private final boolean entity;
 
     /**
      * 构造一个对象锁
      * @param object
      */
     public ObjectLock(Object object) {
-        this(object, false);
+        this(object, true);
     }
 
     /**
@@ -33,11 +32,6 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
             this.value = ((Entity) object).getIdentity();
         else {
             this.value = new Integer(System.identityHashCode(object));
-        }
-        if (IENTITY_CLASS.isAssignableFrom(this.clz)) {
-            this.entity = true;
-        } else {
-            this.entity = false;
         }
     }
 
@@ -62,24 +56,18 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
     }
 
     public boolean isEntity() {
-        return this.entity;
+        return IENTITY_CLASS.isAssignableFrom(this.clz);
     }
 
     @Override
     public int compareTo(ObjectLock o) {
         if ((isEntity()) && (!(o.isEntity()))) return 1;
-        if ((!(isEntity())) && (o.isEntity())) {
-            return -1;
-        }
-
+        if ((!(isEntity())) && (o.isEntity())) return -1;
         if (this.clz != o.clz) {
             if (this.clz.hashCode() < o.clz.hashCode()) return -1;
-            if (this.clz.hashCode() > o.clz.hashCode()) {
-                return 1;
-            }
+            if (this.clz.hashCode() > o.clz.hashCode()) return 1;
             return this.clz.getName().compareTo(o.clz.getName());
         }
-
         return this.value.compareTo(o.value);
     }
 }
