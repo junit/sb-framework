@@ -22,16 +22,8 @@ public class DefaultDispatcher implements Dispatcher {
     private final Disruptor<MessageEvent> disruptor;
     private final RingBuffer<MessageEvent> ringBuffer;
 
-    public DefaultDispatcher() {
-        this(1, null, BUFFER_SIZE);
-    }
-
     public DefaultDispatcher(final String executorName) {
         this(1, executorName, BUFFER_SIZE);
-    }
-
-    public DefaultDispatcher(final int maxThreads) {
-        this(maxThreads, null, BUFFER_SIZE);
     }
 
     public DefaultDispatcher(final int maxThreads, final String executorName) {
@@ -42,15 +34,15 @@ public class DefaultDispatcher implements Dispatcher {
         if ((bufferSize < 0) || (bufferSize & (bufferSize - 1)) != 0) {
             throw new IllegalArgumentException("bufferSize must be power of 2.");
         }
-        int threadPoolSize = Math.min(Math.abs(maxThreads), DEFAULT_IO_THREADS);
+        final int threadPoolSize = Math.min(Math.abs(maxThreads), DEFAULT_IO_THREADS);
         ThreadFactory threadFactory = new ThreadFactory() {
             private AtomicInteger counter = new AtomicInteger(1);
 
             @Override
             public Thread newThread(Runnable r) {
                 Thread t =
-                        new Thread(r, (executorName == null ? "Disruptor" : executorName) + "-"
-                                + counter.getAndIncrement());
+                        new Thread(r, (executorName == null ? "Disruptor" : executorName)
+                                + (threadPoolSize == 1 ? "" : "-" + counter.getAndIncrement()));
                 t.setDaemon(true);
                 t.setPriority(Thread.MAX_PRIORITY);
                 return t;
