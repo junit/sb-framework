@@ -1,6 +1,6 @@
-package org.chinasb.common.executor.handler;
+package org.chinasb.common.disruptor.handler;
 
-import org.chinasb.common.executor.event.MessageEvent;
+import org.chinasb.common.disruptor.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +12,7 @@ import com.lmax.disruptor.WorkHandler;
  * @author zhujuan
  */
 public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHandler<MessageEvent> {
-    private static final Logger LOG = LoggerFactory.getLogger(MessageEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageEventHandler.class);
 
     @Override
     public void onEvent(final MessageEvent event, final long sequence, final boolean endOfBatch)
@@ -20,7 +20,7 @@ public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHand
         try {
             event.task.run();
         } catch (Exception e) {
-            LOG.error("EXECUTE TASK ERROR:", e);
+            LOGGER.error("EXECUTE TASK ERROR:", e);
         }
     }
 
@@ -29,7 +29,7 @@ public class MessageEventHandler implements EventHandler<MessageEvent>, WorkHand
         try {
             event.task.run();
         } catch (Exception e) {
-            LOG.error("EXECUTE TASK ERROR:", e);
+            LOGGER.error("EXECUTE TASK ERROR:", e);
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.event;
+package org.chinasb.common.disruptor.event;
 
 import com.lmax.disruptor.EventFactory;
 

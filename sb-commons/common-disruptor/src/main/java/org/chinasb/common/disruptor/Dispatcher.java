@@ -1,4 +1,4 @@
-package org.chinasb.common.executor;
+package org.chinasb.common.disruptor;
 
 /**
  * 任务调度

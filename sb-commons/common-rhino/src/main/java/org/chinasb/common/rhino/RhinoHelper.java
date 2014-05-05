@@ -13,7 +13,7 @@ import com.google.common.base.Strings;
  * @author zhujuan
  */
 public class RhinoHelper {
-    private static Logger log = LoggerFactory.getLogger(RhinoHelper.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(RhinoHelper.class);
 
     /**
      * 执行表达式
@@ -26,8 +26,8 @@ public class RhinoHelper {
             try {
                 return Rhino.invoke(expression, context);
             } catch (Exception ex) {
-                log.error("公式: [{}], 参数[{}]执行错误 - ", expression, context);
-                log.error("", ex);
+                LOGGER.error("公式: [{}], 参数[{}]执行错误 - ", expression, context);
+                LOGGER.error("", ex);
             }
         }
         return null;

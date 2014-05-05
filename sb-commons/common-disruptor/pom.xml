@@ -9,14 +9,13 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>common-executor</artifactId>
-	<name>common-executor</name>
-
+	<artifactId>common-disruptor</artifactId>
+	<name>common-disruptor</name>
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-digester3</artifactId>
-			<version>3.2</version>
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.2.1</version>
 		</dependency>
 	</dependencies>
 </project>

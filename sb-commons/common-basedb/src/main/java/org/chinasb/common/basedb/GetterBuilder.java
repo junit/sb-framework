@@ -16,7 +16,7 @@ import org.springframework.util.ReflectionUtils;
  * @author zhujuan
  */
 public class GetterBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(GetterBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GetterBuilder.class);
 
     /**
      * 创建唯一标识取值器
@@ -27,12 +27,12 @@ public class GetterBuilder {
         Field[] fields = ReflectionUtility.getDeclaredFieldsWith(clz, Id.class);
         if (fields == null) {
             FormattingTuple message = MessageFormatter.format("类 [{}] 缺少唯一标识声明", clz);
-            logger.error(message.getMessage());
+            LOGGER.error(message.getMessage());
             throw new RuntimeException(message.getMessage());
         }
         if (fields.length > 1) {
             FormattingTuple message = MessageFormatter.format("类 [{}] 有多个唯一标识声明", clz);
-            logger.error(message.getMessage());
+            LOGGER.error(message.getMessage());
             throw new RuntimeException(message.getMessage());
         }
         return new FieldGetter(fields[0]);
@@ -57,7 +57,7 @@ public class GetterBuilder {
                 value = field.get(object);
             } catch (Exception e) {
                 FormattingTuple message = MessageFormatter.format("标识符属性访问异常", e);
-                GetterBuilder.logger.error(message.getMessage());
+                GetterBuilder.LOGGER.error(message.getMessage());
                 throw new RuntimeException(message.getMessage());
             }
             return value;
@@ -83,7 +83,7 @@ public class GetterBuilder {
                 value = method.invoke(object, new Object[0]);
             } catch (Exception e) {
                 FormattingTuple message = MessageFormatter.format("标识方法访问异常", e);
-                GetterBuilder.logger.error(message.getMessage());
+                GetterBuilder.LOGGER.error(message.getMessage());
                 throw new RuntimeException(message.getMessage());
             }
             return value;

@@ -1,7 +1,7 @@
 package org.chinasb.common.executor.configuration;
 
 /**
- * 指令拦截配置
+ * 指令拦截器配置
  * @author zhujuan
  */
 public class CommandInterceptorConfig {

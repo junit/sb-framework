@@ -1,12 +1,13 @@
-package org.chinasb.common.executor;
+package org.chinasb.common.disruptor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.chinasb.common.executor.event.MessageEvent;
-import org.chinasb.common.executor.handler.MessageEventHandler;
+import org.chinasb.common.disruptor.event.MessageEvent;
+import org.chinasb.common.disruptor.handler.MessageEventHandler;
+
 
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.InsufficientCapacityException;
@@ -15,7 +16,7 @@ import com.lmax.disruptor.WorkHandler;
 import com.lmax.disruptor.dsl.Disruptor;
 
 /**
- * 任务调度器
+ * 任务调度实现
  * @author zhujuan
  */
 public class DefaultDispatcher implements Dispatcher {

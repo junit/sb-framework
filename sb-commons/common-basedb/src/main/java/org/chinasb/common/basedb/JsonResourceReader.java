@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  */
 @Component("jsonResourceReader")
 public class JsonResourceReader implements ResourceReader {
-    private static final Logger log = LoggerFactory.getLogger(JsonResourceReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonResourceReader.class);
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final TypeFactory typeFactory = TypeFactory.defaultInstance();
@@ -37,7 +37,7 @@ public class JsonResourceReader implements ResourceReader {
             List<E> list = objectMapper.readValue(input, type);
             return list.iterator();
         } catch (Exception e) {
-            log.error("JsonReader读取基础数据:[{}] 文件异常!", clazz, e);
+            LOGGER.error("JsonReader读取基础数据:[{}] 文件异常!", clazz, e);
             throw new RuntimeException(e);
         }
     }

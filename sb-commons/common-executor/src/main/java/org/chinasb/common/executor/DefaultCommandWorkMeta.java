@@ -14,8 +14,8 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
     private CommandWorkerConfig commandWorkerConfig;
 
     /**
-     * 初始化指令工作器元数据配置
-     * @param configFilePath
+     * 构造器
+     * @param configFilePath 配置路径
      */
     public DefaultCommandWorkMeta(String configFilePath) {
         Digester digester = new Digester();

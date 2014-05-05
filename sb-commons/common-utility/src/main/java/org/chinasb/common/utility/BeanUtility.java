@@ -24,7 +24,7 @@ import org.springframework.beans.BeanUtils;
  * @author zhujuan
  */
 public class BeanUtility {
-    private static Logger log = LoggerFactory.getLogger(BeanUtility.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(BeanUtility.class);
     private static BeanUtilsBean beanUtilsBean;
 
     static {
@@ -108,7 +108,7 @@ public class BeanUtility {
                         }
                         writeMethod.invoke(target, new Object[] {value});
                     } catch (Throwable e) {
-                        log.error("BeanUtil 对象复制出错:", e);
+                        LOGGER.error("BeanUtil 对象复制出错:", e);
                         throw new RuntimeException(e);
                     }
                 }
@@ -120,7 +120,7 @@ public class BeanUtility {
         try {
             return beanUtilsBean.cloneBean(bean);
         } catch (Throwable e) {
-            log.error("BeanUtil 对象克隆出错:", e);
+            LOGGER.error("BeanUtil 对象克隆出错:", e);
             throw new RuntimeException(e);
         }
     }
@@ -140,7 +140,7 @@ public class BeanUtility {
             }
             beanUtilsBean.copyProperty(bean, name, value);
         } catch (Throwable e) {
-            log.error("BeanUtil 对象属性赋值出错:", e);
+            LOGGER.error("BeanUtil 对象属性赋值出错:", e);
             throw new RuntimeException(e);
         }
     }
@@ -149,7 +149,7 @@ public class BeanUtility {
         try {
             return beanUtilsBean.describe(bean);
         } catch (Throwable e) {
-            log.error("BeanUtil 对象克隆出错:", e);
+            LOGGER.error("BeanUtil 对象克隆出错:", e);
             throw new RuntimeException(e);
         }
     }
@@ -184,7 +184,7 @@ public class BeanUtility {
             }
             return map;
         } catch (Throwable e) {
-            log.error("BeanUtil 创建Map失败:", e);
+            LOGGER.error("BeanUtil 创建Map失败:", e);
             throw new RuntimeException(e);
         }
     }
@@ -256,7 +256,7 @@ public class BeanUtility {
                             DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                             beanValue = format.parse(String.valueOf(mapValue));
                         } catch (ParseException e) {
-                            log.error("BeanUtil buildBean string 转 Date 出错!");
+                            LOGGER.error("BeanUtil buildBean string 转 Date 出错!");
                             continue;
                         }
                     }
@@ -265,7 +265,7 @@ public class BeanUtility {
             }
             return bean;
         } catch (Throwable e) {
-            log.error("BeanUtil 根据map创建bean出错:", e);
+            LOGGER.error("BeanUtil 根据map创建bean出错:", e);
             throw new RuntimeException(e);
         }
     }
@@ -274,7 +274,7 @@ public class BeanUtility {
         try {
             beanUtilsBean.setProperty(bean, name, value);
         } catch (Throwable e) {
-            log.error("BeanUtil 给对象属性赋值出错:", e);
+            LOGGER.error("BeanUtil 给对象属性赋值出错:", e);
             throw new RuntimeException(e);
         }
     }
@@ -283,7 +283,7 @@ public class BeanUtility {
         try {
             return beanUtilsBean.getPropertyUtils().getSimpleProperty(bean, name);
         } catch (Throwable e) {
-            log.error("BeanUtil 获取对象属性值出错:", e);
+            LOGGER.error("BeanUtil 获取对象属性值出错:", e);
             throw new RuntimeException(e);
         }
     }

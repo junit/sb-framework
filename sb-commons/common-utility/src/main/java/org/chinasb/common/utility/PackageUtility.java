@@ -20,7 +20,7 @@ import org.springframework.util.SystemPropertyUtils;
  * @author zhujuan
  */
 public class PackageUtility {
-    private static final Logger logger = LoggerFactory.getLogger(PackageUtility.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PackageUtility.class);
     private static final ResourcePatternResolver resourcePatternResolver =
             new PathMatchingResourcePatternResolver();
     private static final MetadataReaderFactory metadataReaderFactory =
@@ -56,12 +56,12 @@ public class PackageUtility {
                             clazzCollection.add(clazz);
                         }
                     } catch (ClassNotFoundException e) {
-                        logger.error("类 {} 不存在!", className);
+                        LOGGER.error("类 {} 不存在!", className);
                         throw new RuntimeException(e);
                     }
                 }
             } catch (IOException e) {
-                logger.error("扫描包 {} 出错!", packageName);
+                LOGGER.error("扫描包 {} 出错!", packageName);
                 throw new RuntimeException(e);
             }
         }

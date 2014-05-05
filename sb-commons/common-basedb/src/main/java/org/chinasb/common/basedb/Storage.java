@@ -29,7 +29,7 @@ import org.springframework.util.ResourceUtils;
  * @param <V>
  */
 public class Storage<V> {
-    private static final Logger logger = LoggerFactory.getLogger(Storage.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Storage.class);
     /**
      * 基础数据的类对象
      */
@@ -181,7 +181,7 @@ public class Storage<V> {
                 FormattingTuple message =
                         MessageFormatter.format("基础数据[{}]所对应的资源文件[{}]不存在!", clazz.getName(),
                                 location);
-                logger.error(message.getMessage());
+                LOGGER.error(message.getMessage());
                 return;
             }
             InputStream input = resource.openStream();
@@ -198,7 +198,7 @@ public class Storage<V> {
                     } catch (Exception e) {
                         FormattingTuple message =
                                 MessageFormatter.format("基础数据[{}] 属性设置后处理出错!", clazz.getName());
-                        logger.error(message.getMessage(), e);
+                        LOGGER.error(message.getMessage(), e);
                     }
                 }
                 if (offer(obj, dataTable_copy) != null) {
@@ -216,13 +216,13 @@ public class Storage<V> {
             dataTable.putAll(dataTable_copy);
             indexTable.putAll(indexTable_copy);
             idList.addAll(idList_copy);
-            logger.info("完成加载  {} 基础数据...", clazz.getName());
+            LOGGER.info("完成加载  {} 基础数据...", clazz.getName());
         } catch (IOException e) {
             FormattingTuple message =
                     MessageFormatter.format("基础数据[{}]所对应的资源文件[{}]不存在!", clazz.getName(), location);
-            logger.error(message.getMessage());
+            LOGGER.error(message.getMessage());
         } catch (Exception e) {
-            logger.error("{}", e);
+            LOGGER.error("{}", e);
         }
     }
 

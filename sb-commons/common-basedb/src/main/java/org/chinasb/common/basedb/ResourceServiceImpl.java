@@ -30,7 +30,7 @@ public class ResourceServiceImpl
         implements
             ResourceService,
             ApplicationListener<ContextRefreshedEvent> {
-    private static final Logger log = LoggerFactory.getLogger(ResourceServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceServiceImpl.class);
     private ConcurrentHashMap<Class, Storage> storages = new ConcurrentHashMap<Class, Storage>(50);
     private List<ResourceListener> listeners = new ArrayList<ResourceListener>();
     @Autowired(required = false)
@@ -61,15 +61,15 @@ public class ResourceServiceImpl
                 } catch (Exception e) {
                     FormattingTuple message =
                             MessageFormatter.format("加载  {} 基础数据时出错!", clazz.getName());
-                    log.error(message.getMessage(), e);
+                    LOGGER.error(message.getMessage(), e);
                 }
             }
         } else {
             FormattingTuple message = MessageFormatter.format("在 {} 包下没有扫描到实体类!", resourcePackage);
-            log.error(message.getMessage());
+            LOGGER.error(message.getMessage());
         }
         fireBasedbReload();
-        log.info("基础数据加载完毕...");
+        LOGGER.info("基础数据加载完毕...");
     }
 
     /**
@@ -81,7 +81,7 @@ public class ResourceServiceImpl
                 try {
                     listener.onBasedbReload();
                 } catch (Exception e) {
-                    log.error("BasedbListener 出错!", e);
+                    LOGGER.error("BasedbListener 出错!", e);
                 }
             }
         }
@@ -219,7 +219,7 @@ public class ResourceServiceImpl
                 initializeStorage(clazz);
             } catch (Exception e) {
                 FormattingTuple message = MessageFormatter.format("加载 {} 类时出错!", clazz.getName());
-                log.error(message.getMessage(), e);
+                LOGGER.error(message.getMessage(), e);
             }
         }
         fireBasedbReload();
@@ -234,7 +234,7 @@ public class ResourceServiceImpl
         try {
             initialize();
         } catch (Exception e) {
-            log.error("基础数据初始化出错!", e);
+            LOGGER.error("基础数据初始化出错!", e);
         }
         applicationContext.publishEvent(new ResourceReloadEvent(applicationContext));
     }
