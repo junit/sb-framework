@@ -12,8 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 /**
- * 缓存管理适配器
+ * 实体对象缓存适配器
  * @author zhujuan
  */
 public abstract class CachedServiceAdpter {
@@ -24,9 +28,19 @@ public abstract class CachedServiceAdpter {
     protected CommonDao commonDao;
     @Autowired
     protected CachedService cachedService;
-
     /**
-     * 获得实体主健
+     * 实体对象锁缓存
+     */
+    private static final LoadingCache<String, Object> OBJECT_MAPS = CacheBuilder.newBuilder()
+            .maximumSize(1000).build(new CacheLoader<String, Object>() {
+                @Override
+                public Object load(String clz) {
+                    return new Object();
+                }
+            });
+    
+    /**
+     * 获得实体对象主健
      * @param id 唯一标识
      * @param entityClazz 实体类对象
      * @return
@@ -37,7 +51,7 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 获得实体
+     * 获得实体对象
      * @param id 唯一标识
      * @param clazz 实体类对象
      * @return
@@ -48,10 +62,10 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 获得实体
+     * 获得实体对象
      * @param id 唯一标识
      * @param clazz 实体类对象
-     * @param fromCache true:通过缓存获得， false:通过数据库获得
+     * @param fromCache true:直接缓存获得， false:刷新缓存获得
      * @return
      */
     protected <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> T get(PK id,
@@ -62,14 +76,23 @@ public abstract class CachedServiceAdpter {
         String key = getEntityIdKey(id, clazz);
         if (!fromCache) {
             cachedService.removeFromEntityCache(key);
-        }
-        try {
+        } else {
             T entity = (T) cachedService.getFromEntityCache(key);
             if (entity != null) {
                 return entity;
             }
-            entity = (T) getEntityFromDB((Serializable) id, clazz);
-            return (T) cachedService.put2EntityCache(key, entity);
+        }
+        
+        Object lockObject = OBJECT_MAPS.getUnchecked(key);
+        try {
+            synchronized (lockObject) {
+                T entity = (T) cachedService.getFromEntityCache(key);
+                if (entity != null) {
+                    return entity;
+                }
+                entity = (T) getEntityFromDB((Serializable) id, clazz);
+                return (T) cachedService.put2EntityCache(key, entity);
+            }
         } catch (Exception e) {
             LOGGER.error("{}", e);
         }
@@ -78,7 +101,7 @@ public abstract class CachedServiceAdpter {
 
 
     /**
-     * 获得实体对象集合（缓存->数据库）
+     * 获得实体对象集合
      * @param idList 唯一标识集合
      * @param entityClazz 实体类对象
      * @return
@@ -99,7 +122,7 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 通过缓存获得实体
+     * 获得缓存中的实体对象
      * @param id 唯一标识
      * @param entityClazz 实体类对象
      * @return
@@ -111,7 +134,7 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 通过数据库获得实体
+     * 获得数据库中的实体对象
      * @param id 唯一标识
      * @param entityClazz 实体类对象
      * @return
@@ -121,7 +144,7 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 移除实体缓存
+     * 移除缓存中的实体对象
      * @param id 唯一标识
      * @param entityClazz 实体类对象
      */
@@ -131,7 +154,7 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 移除实体缓存
+     * 移除缓存中的实体对象
      * @param idList 唯一标识集合
      * @param entityClazz 实体类对象
      */
@@ -145,7 +168,7 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 增加实体缓存
+     * 增加实体对象到缓存
      * @param entiys 实体
      * @return
      */
@@ -163,7 +186,7 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 增加实体缓存
+     * 增加实体对象到缓存
      * @param entiys 实体集合
      * @return
      */

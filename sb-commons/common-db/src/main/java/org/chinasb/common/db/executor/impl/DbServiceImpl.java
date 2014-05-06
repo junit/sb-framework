@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Sets;
 
 /**
- * 数据库服务
+ * 数据持久化服务
  * @author zhujuan
  */
 @Service
@@ -48,7 +48,7 @@ public class DbServiceImpl implements DbService {
      */
     private static final LinkedBlockingQueue<Runnable> DB_SAVER_QUEUE = new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE);
     /**
-     * 等待持久化数据集合
+     * 实体对象持久化集合
      */
     private static final ConcurrentMap<Class<?>, Set<BaseModel<?>>> DB_OBJECT_MAP = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>(100);
     
@@ -74,7 +74,7 @@ public class DbServiceImpl implements DbService {
     private Integer keepAliveTime;
     
     /**
-     * 数据持久化任务周期
+     * （实时任务：entityBlockTime <= 0，周期性任务：entityBlockTime > 0）
      */
     @Autowired(required = false)
     @Qualifier("dbcache.max_block_time_of_entity_cache")
@@ -90,9 +90,12 @@ public class DbServiceImpl implements DbService {
      */
     public final Runnable CUSTOMER_TASK;
     /**
-     * 周期性的数据持久化提交
+     * 实体对象持久化集合周期性任务提交
      */
     public final Runnable HANDLER_CACHED_OBJ_TASK;
+    /**
+     * 最大重试次数
+     */
     private static final int MAX_RETRY_COUNT = 5;
 
     /**
@@ -173,7 +176,7 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 服务停止任务
+     * 数据持久化服务停止
      * @author zhujuan
      */
     private class ShutdownHookRunnable implements Runnable {
@@ -184,60 +187,11 @@ public class DbServiceImpl implements DbService {
         }
     }
     
-    /**
-     * 提交等待持久化的数据集合到数据持久化任务队列
-     */
-    private final void submitCachedDbObject() {
-        if (DB_OBJECT_MAP.isEmpty()) {
-            return;
-        }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
-        synchronized (DB_OBJECT_MAP) {
-            objSet.putAll(DB_OBJECT_MAP);
-            DB_OBJECT_MAP.clear();
-        }
-        Iterator<Class<?>> iterator = objSet.keySet().iterator();
-        while (iterator.hasNext()) {
-            Object key = iterator.next();
-            Set<BaseModel<?>> set = objSet.get(key);
-            if ((set != null) && (set.size() > 0)) {
-                DB_SAVER_QUEUE.add(createTask(null, new EntityCache(new Object[] {set})));
-            }
-        }
-    }
 
     /**
-     * 实时处理等待持久化的数据集合
-     */
-    private final void updateIntimeCachedDbObject() {
-        if (DB_OBJECT_MAP.isEmpty()) {
-            return;
-        }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
-        synchronized (DB_OBJECT_MAP) {
-            objSet.putAll(DB_OBJECT_MAP);
-            DB_OBJECT_MAP.clear();
-        }
-        int subCount = 100;
-        for (Set<BaseModel<?>> concurrentHashSet : objSet.values()) {
-            if ((concurrentHashSet != null) && (!concurrentHashSet.isEmpty())) {
-                int maxSize = concurrentHashSet.size();
-                List<BaseModel<?>> list = new ArrayList<BaseModel<?>>(concurrentHashSet);
-                int maxCount =
-                        maxSize % subCount == 0 ? maxSize / subCount : maxSize / subCount + 1;
-                for (int index = 0; index < maxCount; index++) {
-                    List<BaseModel<?>> subList =
-                            CollectionUtils.subListCopy(list, subCount * index, subCount);
-                    updateEntityIntime(new Object[] {subList});
-                }
-            }
-        }
-    }
-
-    /**
-     * 创建数据持久化任务
+     * 创建实体对象缓存持久化任务
      * @param callback 回调
-     * @param entityCache 实体数据
+     * @param entityCache 实体对象缓存数据
      * @return
      */
     private Runnable createTask(final DbCallback callback, final EntityCache entityCache) {
@@ -247,9 +201,9 @@ public class DbServiceImpl implements DbService {
             }
         };
     }
-
+    
     /**
-     * 提交实体缓存到数据持久化任务队列
+     * 提交实体对象缓存持久化任务
      * @param callback 回调参数
      * @param entityCache 实体缓存
      */
@@ -258,9 +212,9 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 数据持久化任务处理
+     * 实体对象缓存持久化任务处理
      * @param callback 回调
-     * @param entityCache 实体数据
+     * @param entityCache 实体对象缓存数据
      * @param removeFromSubmitCache
      */
     private void handleTask(DbCallback callback, EntityCache entityCache,
@@ -293,8 +247,58 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 增加实体集合到持久化集合
-     * @param entities
+     * 实体对象持久化集合异步处理
+     */
+    private final void submitCachedDbObject() {
+        if (DB_OBJECT_MAP.isEmpty()) {
+            return;
+        }
+        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
+        synchronized (DB_OBJECT_MAP) {
+            objSet.putAll(DB_OBJECT_MAP);
+            DB_OBJECT_MAP.clear();
+        }
+        Iterator<Class<?>> iterator = objSet.keySet().iterator();
+        while (iterator.hasNext()) {
+            Object key = iterator.next();
+            Set<BaseModel<?>> set = objSet.get(key);
+            if ((set != null) && (set.size() > 0)) {
+                DB_SAVER_QUEUE.add(createTask(null, new EntityCache(new Object[] {set})));
+            }
+        }
+    }
+
+    /**
+     * 实体对象持久化集合实时处理
+     */
+    private final void updateIntimeCachedDbObject() {
+        if (DB_OBJECT_MAP.isEmpty()) {
+            return;
+        }
+        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
+        synchronized (DB_OBJECT_MAP) {
+            objSet.putAll(DB_OBJECT_MAP);
+            DB_OBJECT_MAP.clear();
+        }
+        int subCount = 100;
+        for (Set<BaseModel<?>> concurrentHashSet : objSet.values()) {
+            if ((concurrentHashSet != null) && (!concurrentHashSet.isEmpty())) {
+                int maxSize = concurrentHashSet.size();
+                List<BaseModel<?>> list = new ArrayList<BaseModel<?>>(concurrentHashSet);
+                int maxCount =
+                        maxSize % subCount == 0 ? maxSize / subCount : maxSize / subCount + 1;
+                for (int index = 0; index < maxCount; index++) {
+                    List<BaseModel<?>> subList =
+                            CollectionUtils.subListCopy(list, subCount * index, subCount);
+                    updateEntityIntime(new Object[] {subList});
+                }
+            }
+        }
+    }
+    
+    /**
+     * 增加实体对象到持久化集合
+     * @param entities 实体对象集合
      */
     private void put2ObjectMap(Collection<BaseModel<?>> entities) {
         for (BaseModel<?> e : entities) {
@@ -303,8 +307,8 @@ public class DbServiceImpl implements DbService {
     }
 
     /**
-     * 增加实体到持久化集合
-     * @param entity
+     * 增加实体对象到持久化集合
+     * @param entity 实体对象
      */
     private void put2ObjectMap(BaseModel<?> entity) {
         Class<?> clazz = entity.getClass();
@@ -390,11 +394,11 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 实体缓存
+     * 实体对象缓存
      */
     public static class EntityCache {
         /**
-         * 实体集合
+         * 实体对象集合
          */
         private Collection<BaseModel<?>> entities;
         /**
@@ -403,7 +407,7 @@ public class DbServiceImpl implements DbService {
         private int retryCount;
 
         /**
-         * 获得实体集合
+         * 获得实体对象集合
          * @return
          */
         public Collection<BaseModel<?>> getEntities() {
@@ -429,7 +433,7 @@ public class DbServiceImpl implements DbService {
     
 
     /**
-     * 获得可持久化的实体集合
+     * 获得可持久化的实体对象集合
      * @param entities 
      * @return
      */

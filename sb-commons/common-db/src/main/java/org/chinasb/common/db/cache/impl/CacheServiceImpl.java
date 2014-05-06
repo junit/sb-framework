@@ -22,19 +22,27 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.MapMaker;
 
 /**
- * 缓存管理实现
+ * 缓存管理服务
  * @author zhujuan
  */
 @Service
 public class CacheServiceImpl implements CachedService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheServiceImpl.class);
-    
+    /**
+     * 通用对象缓存容量
+     */
     @Autowired(required = false)
     @Qualifier("dbcache.max_capacity_of_common_cache")
     private Integer commonCacheSize;
+    /**
+     * 实体对象缓存容量
+     */
     @Autowired(required = false)
     @Qualifier("dbcache.max_capacity_of_entity_cache")
     private Integer entityCacheSize;
+    /**
+     * 实体对象缓存默认过期时间
+     */
     @Autowired(required = false)
     @Qualifier("dbcache.ttl_of_entity_cache")
     private Integer entityCacheTTL;
@@ -47,11 +55,11 @@ public class CacheServiceImpl implements CachedService {
      */
     private static int MAX_EXTEND_MILISECONDS = TimeConstant.ONE_MINUTE_MILLISECOND * 10;
     /**
-     * 公共缓存
+     * 通用对象缓存
      */
     private Cache<String, Object> COMMON_CACHE;
     /**
-     * 实体缓存
+     * 实体对象缓存
      */
     private Cache<String, CacheObject> ENTITY_CACHE;
 
@@ -61,7 +69,7 @@ public class CacheServiceImpl implements CachedService {
     public CacheServiceImpl() {
         commonCacheSize = Integer.valueOf(500000);
         entityCacheSize = Integer.valueOf(500000);
-        entityCacheTTL = Integer.valueOf(7200000);
+        entityCacheTTL = Integer.valueOf(ONE_MIN_MILISECONDS * 120);
         COMMON_CACHE = null;
         ENTITY_CACHE = null;
     }
@@ -99,6 +107,10 @@ public class CacheServiceImpl implements CachedService {
         }
         if (!cacheObject.isValidate()) {
             synchronized (cacheObject) {
+                cacheObject = (CacheObject) ENTITY_CACHE.asMap().get(key);
+                if (cacheObject == null) {
+                    return null;
+                }
                 if (!cacheObject.isValidate()) {
                     Object entity = cacheObject.getEntity();
                     if (!dbService.isInDbQueue(entity)) {
@@ -223,10 +235,10 @@ public class CacheServiceImpl implements CachedService {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getFromCache-Key:[{}]", key);
         }
-        if (!COMMON_CACHE.asMap().containsKey(key)) {
+        Object cacheObj = COMMON_CACHE.asMap().get(key);
+        if (cacheObj == null) {
             return null;
         }
-        Object cacheObj = COMMON_CACHE.asMap().get(key);
         if ((cacheObj instanceof CacheObject)) {
             CacheObject co = (CacheObject) cacheObj;
             if (LOGGER.isDebugEnabled()) {
@@ -234,11 +246,13 @@ public class CacheServiceImpl implements CachedService {
                         new Object[] {Long.valueOf(co.getCreateTime()), Long.valueOf(co.getTtl()),
                                 Boolean.valueOf(co.isValidate())});
             }
-            if (co.isValidate()) {
-                return co.getEntity();
+            if (!co.isValidate()) {
+                if (COMMON_CACHE.asMap().containsKey(key)) {
+                    COMMON_CACHE.asMap().remove(key);
+                }
+                return null;
             }
-            COMMON_CACHE.asMap().remove(key);
-            return null;
+            return co.getEntity();
         }
         return cacheObj;
     }
@@ -248,18 +262,12 @@ public class CacheServiceImpl implements CachedService {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("hashKey: [{}] , subKey: [{}]", hashKey, subKey);
         }
-        if (!COMMON_CACHE.asMap().containsKey(hashKey)) {
-            return null;
-        }
         Object cacheObject = COMMON_CACHE.asMap().get(hashKey);
         if (cacheObject == null) {
             return null;
         }
         if ((cacheObject instanceof Map)) {
             Map<String, Object> cache = (Map<String, Object>) cacheObject;
-            if (!cache.containsKey(subKey)) {
-                return null;
-            }
             Object subObject = cache.get(subKey);
             if (subObject == null) {
                 return null;
@@ -272,11 +280,13 @@ public class CacheServiceImpl implements CachedService {
                             new Object[] {Long.valueOf(co.getCreateTime()),
                                     Long.valueOf(co.getTtl()), Boolean.valueOf(co.isValidate())});
                 }
-                if (co.isValidate()) {
-                    return co.getEntity();
+                if (!co.isValidate()) {
+                    if (cache.containsKey(subKey)) {
+                        cache.remove(subKey);
+                    }
+                    return null;
                 }
-                cache.remove(subKey);
-                return null;
+                return co.getEntity();
             }
             return subObject;
         }
@@ -285,7 +295,9 @@ public class CacheServiceImpl implements CachedService {
 
     @Override
     public void removeFromCommonCache(String key) {
-        COMMON_CACHE.asMap().remove(key);
+        if (COMMON_CACHE.asMap().containsKey(key)) {
+            COMMON_CACHE.asMap().remove(key);
+        }
     }
 
     @Override

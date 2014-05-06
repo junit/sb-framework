@@ -107,9 +107,28 @@ public class CommonDaoImpl implements CommonDao {
     }
 
     @Override
-    public <T> T execute(String sql) {
+    public int execute(String sql) {
         if (Strings.isNullOrEmpty(sql)) {
             SQLQuery sqlQuery = getSession().createSQLQuery(sql);
+            return sqlQuery.executeUpdate();
+        }
+        return 0;
+    }
+    
+    @Override
+    public <T> T query(String sql) {
+        if (Strings.isNullOrEmpty(sql)) {
+            SQLQuery sqlQuery = getSession().createSQLQuery(sql);
+            return (T) sqlQuery.list();
+        }
+        return null;
+    }
+    
+    @Override
+    public <T> T query(String sql, Class<T> entityClazz) {
+        if (Strings.isNullOrEmpty(sql)) {
+            SQLQuery sqlQuery = getSession().createSQLQuery(sql);
+            sqlQuery.addEntity(entityClazz);
             return (T) sqlQuery.list();
         }
         return null;

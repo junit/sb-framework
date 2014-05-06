@@ -51,9 +51,24 @@ public interface CommonDao {
     public <T> T execute(DetachedCriteria detachedCriteria);
 
     /**
-     * Native SQL
+     * NativeSQL执行
      * @param sql
      * @return
      */
-    public <T> T execute(String sql);
+    public int execute(String sql);
+    
+    /**
+     * NativeSQL查询
+     * @param sql
+     * @return
+     */
+    public <T> T query(String sql);
+    
+    /**
+     * NativeSQL查询
+     * @param sql
+     * @param entityClazz
+     * @return
+     */
+    public <T> T query(String sql, Class<T> entityClazz);
 }
