@@ -15,7 +15,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>common-executor</artifactId>
+			<artifactId>common-disruptor</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
