@@ -161,7 +161,26 @@ public class CacheServiceImpl implements CachedService {
             return object;
         }
         if (timeToLive > 0L) {
-            return COMMON_CACHE.asMap().putIfAbsent(key, CacheObject.valueOf(object, timeToLive));
+            CacheObject cacheObject =
+                    (CacheObject) COMMON_CACHE.asMap().putIfAbsent(key,
+                            CacheObject.valueOf(object, timeToLive));
+            if(cacheObject == null) {
+                return null;
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
+                        "CacheObject- [createTime: [{}] , ttl: [{}] , isValidate: [{}] ]",
+                        new Object[] {Long.valueOf(cacheObject.getCreateTime()),
+                                Long.valueOf(cacheObject.getTtl()),
+                                Boolean.valueOf(cacheObject.isValidate())});
+            }
+            if (!cacheObject.isValidate()) {
+                if (COMMON_CACHE.asMap().containsKey(key)) {
+                    COMMON_CACHE.asMap().remove(key);
+                }
+                return null;
+            }
+            return cacheObject.getEntity();
         }
         return COMMON_CACHE.asMap().putIfAbsent(key, object);
     }
@@ -225,7 +244,25 @@ public class CacheServiceImpl implements CachedService {
             COMMON_CACHE.put(hashKey, cache);
         }
         if (timeToLive > 0L) {
-            return cache.putIfAbsent(subKey, CacheObject.valueOf(object, timeToLive));
+            CacheObject cacheObject =
+                    (CacheObject) cache
+                            .putIfAbsent(subKey, CacheObject.valueOf(object, timeToLive));
+            if (cacheObject == null) {
+                return null;
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(
+                        "createTime: [{}], ttl: [{}} , isValidate: [{}]",
+                        new Object[] {Long.valueOf(cacheObject.getCreateTime()),
+                                Long.valueOf(cacheObject.getTtl()), Boolean.valueOf(cacheObject.isValidate())});
+            }
+            if (!cacheObject.isValidate()) {
+                if (cache.containsKey(subKey)) {
+                    cache.remove(subKey);
+                }
+                return null;
+            }
+            return cacheObject.getEntity();
         }
         return cache.putIfAbsent(subKey, object);
     }
