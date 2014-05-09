@@ -12,9 +12,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.orm.hibernate3.HibernateSystemException;
-import org.springframework.orm.hibernate3.HibernateTemplate;
-import org.springframework.orm.hibernate3.SessionFactoryUtils;
+import org.springframework.orm.hibernate4.HibernateSystemException;
+import org.springframework.orm.hibernate4.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
@@ -36,21 +35,14 @@ public class CommonDaoImpl implements CommonDao {
     }
 
     public final SessionFactory getSessionFactory() {
-        return hibernateTemplate != null ? hibernateTemplate.getSessionFactory() : null;
+        return ((this.hibernateTemplate != null)
+                ? this.hibernateTemplate.getSessionFactory()
+                : null);
     }
     
     protected final Session getSession() throws DataAccessResourceFailureException,
             IllegalStateException {
-        return getSession(hibernateTemplate.isAllowCreate());
-    }
-
-    protected final Session getSession(boolean allowCreate)
-            throws DataAccessResourceFailureException, IllegalStateException {
-        return !allowCreate
-                ? SessionFactoryUtils.getSession(getSessionFactory(), false)
-                : SessionFactoryUtils.getSession(getSessionFactory(),
-                        hibernateTemplate.getEntityInterceptor(),
-                        hibernateTemplate.getJdbcExceptionTranslator());
+        return getSessionFactory().getCurrentSession();
     }
 
     public <T> Criteria createCriteria(Class<T> entityClazz) {

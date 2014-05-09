@@ -11,4 +11,12 @@
 
 	<artifactId>common-lock</artifactId>
 	<name>common-lock</name>
+	
+	<dependencies>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>17.0</version>
+		</dependency>
+	</dependencies>
 </project>
