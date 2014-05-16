@@ -62,6 +62,7 @@ public class ObjectLockHolder {
      * @return
      */
     public ObjectLock getLock(Object object) {
+        if (object == null) return null;
         return getHolder(object.getClass()).getLock(object);
     }
     
