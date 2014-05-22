@@ -2,22 +2,28 @@ package org.chinasb.common.executor;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.digester3.Digester;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
 import org.chinasb.common.executor.configuration.CommandWorkerConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  * 指令工作器元数据
  * @author zhujuan
  */
+@Component
 public class DefaultCommandWorkMeta implements CommandWorkerMeta {
+    @Autowired(required = false)
+    @Qualifier("commandworker.config_location")
+    private String executorConfigLocation = "worker/commandworker-config.xml";
     private CommandWorkerConfig commandWorkerConfig;
-
-    /**
-     * 构造器
-     * @param configFilePath 配置路径
-     */
-    public DefaultCommandWorkMeta(String configFilePath) {
+    
+    @PostConstruct
+    protected void initialize() {
         Digester digester = new Digester();
         digester.setValidating(false);
         digester.addObjectCreate("executor", CommandWorkerConfig.class);
@@ -29,12 +35,12 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
         try {
             commandWorkerConfig =
                     ((CommandWorkerConfig) digester.parse(DefaultCommandWorkMeta.class
-                            .getResourceAsStream("/" + configFilePath)));
+                            .getResourceAsStream("/" + executorConfigLocation)));
         } catch (Exception e) {
-            throw new RuntimeException("FAILED TO PARSE[' " + configFilePath + " ']", e);
+            throw new RuntimeException("FAILED TO PARSE[' " + executorConfigLocation + " ']", e);
         }
     }
-
+    
     @Override
     public boolean isScanPackage(String packageName) {
         for (String s : commandWorkerConfig.getScanPackages()) {

@@ -13,6 +13,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
+
 import org.chinasb.common.executor.Interceptor.Interceptor;
 import org.chinasb.common.executor.annotation.CommandInterceptor;
 import org.chinasb.common.executor.annotation.CommandMapping;
@@ -20,34 +22,27 @@ import org.chinasb.common.executor.annotation.CommandWorker;
 import org.chinasb.common.executor.annotation.interceptors.ClassInterceptors;
 import org.chinasb.common.executor.annotation.interceptors.MethodInterceptors;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * 指令工作器管理
  * @author zhujuan
  */
+@Component
 public class DefaultCommandWorkerManager implements CommandWorkerManager {
     private Map<String, CommandResolver> resolvers = new HashMap<String, CommandResolver>();
     private SortedMap<Integer, WildcardEntity> wildCardEntities =
             new ConcurrentSkipListMap<Integer, WildcardEntity>();
 
+    @Autowired
     private CommandWorkerContainer commandWorkerContainer;
+    @Autowired
     private CommandWorkerMeta commandWorkerMeta;
     private List<Interceptor> globalInterceptors;
 
-    public DefaultCommandWorkerManager(CommandWorkerMeta commandWorkerMeta) {
-        this(null, commandWorkerMeta);
-    }
-
-    public DefaultCommandWorkerManager(CommandWorkerContainer commandWorkerContainer,
-            CommandWorkerMeta commandWorkerMeta) {
-        if (null == commandWorkerMeta)
-            throw new NullPointerException("CommandWorkerMeta can't be null.");
-        this.commandWorkerContainer = commandWorkerContainer;
-        this.commandWorkerMeta = commandWorkerMeta;
-        init();
-    }
-
-    public void init() {
+    @PostConstruct
+    protected void initialize() {
         if (commandWorkerMeta.globalInterceptors().size() > 0) {
             this.globalInterceptors = new ArrayList<Interceptor>();
             for (CommandInterceptorConfig commandInterceptorConfig : commandWorkerMeta
@@ -56,11 +51,8 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                     Class<Interceptor> clz =
                             (Class<Interceptor>) Thread.currentThread().getContextClassLoader()
                                     .loadClass(commandInterceptorConfig.getClassName());
-                    if (commandInterceptorConfig.isSpringBean()) {
-                        globalInterceptors.add((Interceptor) commandWorkerContainer.getWorker(clz));
-                    } else {
-                        globalInterceptors.add(clz.newInstance());
-                    }
+                    globalInterceptors.add(commandWorkerContainer.getWorker(clz,
+                            commandInterceptorConfig.isSpringBean()));
                 } catch (Exception e) {
                     throw new RuntimeException("", e);
                 }
@@ -89,15 +81,8 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                     if (null != interceptors && interceptors.length > 0) {
                         classInterceptorList = new ArrayList<Interceptor>();
                         for (CommandInterceptor interceptor : interceptors) {
-                            Interceptor tmp = null;
-                            if (interceptor.isSpringBean()) {
-                                tmp =
-                                        (Interceptor) commandWorkerContainer.getWorker(interceptor
-                                                .value());
-                            } else {
-                                tmp = interceptor.value().newInstance();
-                            }
-                            classInterceptorList.add(tmp);
+                            classInterceptorList.add(commandWorkerContainer.getWorker(
+                                    interceptor.value(), interceptor.isSpringBean()));
                         }
                     }
                 }
@@ -115,15 +100,8 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                             if (null != interceptors && interceptors.length > 0) {
                                 methodInterceptorList = new ArrayList<Interceptor>();
                                 for (CommandInterceptor interceptor : interceptors) {
-                                    Interceptor tmp = null;
-                                    if (interceptor.isSpringBean()) {
-                                        tmp =
-                                                (Interceptor) commandWorkerContainer
-                                                        .getWorker(interceptor.value());
-                                    } else {
-                                        tmp = interceptor.value().newInstance();
-                                    }
-                                    methodInterceptorList.add(tmp);
+                                    methodInterceptorList.add(commandWorkerContainer.getWorker(
+                                            interceptor.value(), interceptor.isSpringBean()));
                                 }
                             }
                         }
@@ -131,16 +109,19 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                         Class<?>[] paramTypes = m.getParameterTypes();
                         if ("".equals(commandWorker.workerName())) {
                             if (commandMapping.isWildcard()) {
-                                wildCardEntities.put(commandMapping.weight(),
-                                        new WildcardEntity(commandMapping.mapping(),
-                                                new DefaultCommandResolver(m, paramTypes, clazz,
-                                                        commandWorkerContainer.getWorker(clazz),
-                                                        globalInterceptors, classInterceptorList,
-                                                        methodInterceptorList)));
+                                wildCardEntities
+                                        .put(commandMapping.weight(),
+                                                new WildcardEntity(commandMapping.mapping(),
+                                                        new DefaultCommandResolver(m, paramTypes,
+                                                                clazz, commandWorkerContainer
+                                                                        .getWorker(clazz, true),
+                                                                globalInterceptors,
+                                                                classInterceptorList,
+                                                                methodInterceptorList)));
                             } else {
                                 resolvers.put(commandMapping.mapping(),
                                         new DefaultCommandResolver(m, paramTypes, clazz,
-                                                commandWorkerContainer.getWorker(clazz),
+                                                commandWorkerContainer.getWorker(clazz, true),
                                                 globalInterceptors, classInterceptorList,
                                                 methodInterceptorList));
                             }
@@ -150,18 +131,18 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                                         commandMapping.weight(),
                                         new WildcardEntity(commandMapping.mapping(),
                                                 new DefaultCommandResolver(m, paramTypes, clazz,
-                                                        commandWorkerContainer
-                                                                .getWorker(commandWorker
-                                                                        .workerName()),
+                                                        commandWorkerContainer.getWorker(
+                                                                commandWorker.workerName(), true),
                                                         globalInterceptors, classInterceptorList,
                                                         methodInterceptorList)));
                             } else {
                                 resolvers.put(
                                         commandMapping.mapping(),
                                         new DefaultCommandResolver(m, paramTypes, clazz,
-                                                commandWorkerContainer.getWorker(commandWorker
-                                                        .workerName()), globalInterceptors,
-                                                classInterceptorList, methodInterceptorList));
+                                                commandWorkerContainer.getWorker(
+                                                        commandWorker.workerName(), true),
+                                                globalInterceptors, classInterceptorList,
+                                                methodInterceptorList));
                             }
                         }
                     }

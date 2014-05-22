@@ -9,14 +9,16 @@ public interface CommandWorkerContainer {
     /**
      * 获得指令工作器
      * @param workerName
+     * @param isSpringBean
      * @return
      */
-    public Object getWorker(String workerName);
+    public Object getWorker(String workerName, boolean isSpringBean);
 
     /**
      * 获得指令工作器
-     * @param workerClass
+     * @param workerClazz
+     * @param isSpringBean
      * @return
      */
-    public Object getWorker(Class<?> workerClass);
+    public <T> T getWorker(Class<T> workerClazz, boolean isSpringBean);
 }
