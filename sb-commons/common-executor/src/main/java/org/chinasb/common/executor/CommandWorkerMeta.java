@@ -9,6 +9,11 @@ import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
  * @author zhujuan
  */
 public interface CommandWorkerMeta {
+	/**
+	 * 获取工作目录
+	 * @return
+	 */
+	public String getWorkingDirectory();
     /**
      * 类包判断
      * @param packageName

@@ -2,12 +2,16 @@ package org.chinasb.common.executor;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -15,6 +19,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.io.FileUtils;
 import org.chinasb.common.executor.Interceptor.Interceptor;
 import org.chinasb.common.executor.annotation.CommandInterceptor;
 import org.chinasb.common.executor.annotation.CommandMapping;
@@ -22,6 +27,13 @@ import org.chinasb.common.executor.annotation.CommandWorker;
 import org.chinasb.common.executor.annotation.interceptors.ClassInterceptors;
 import org.chinasb.common.executor.annotation.interceptors.MethodInterceptors;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
+import org.chinasb.common.executor.script.loader.ScriptComplier;
+import org.chinasb.common.executor.script.loader.ScriptLoader;
+import org.chinasb.common.executor.watcher.FolderWatcher;
+import org.chinasb.common.executor.watcher.WatchEventListener;
+import org.chinasb.common.utility.NamedThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,15 +43,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DefaultCommandWorkerManager implements CommandWorkerManager {
-    private Map<String, CommandResolver> resolvers = new HashMap<String, CommandResolver>();
-    private SortedMap<Integer, WildcardEntity> wildCardEntities =
-            new ConcurrentSkipListMap<Integer, WildcardEntity>();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCommandWorkerManager.class);
+	
+    private Map<String, CommandResolver> resolvers = new ConcurrentHashMap<String, CommandResolver>();
+	private SortedMap<Integer, WildcardEntity> wildCardEntities = new ConcurrentSkipListMap<Integer, WildcardEntity>();
+    private List<Interceptor> globalInterceptors;
+	
     @Autowired
     private CommandWorkerContainer commandWorkerContainer;
     @Autowired
     private CommandWorkerMeta commandWorkerMeta;
-    private List<Interceptor> globalInterceptors;
+    @Autowired
+    private ScriptComplier complier;
 
     @PostConstruct
     protected void initialize() {
@@ -51,8 +66,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                     Class<Interceptor> clz =
                             (Class<Interceptor>) Thread.currentThread().getContextClassLoader()
                                     .loadClass(commandInterceptorConfig.getClassName());
-                    globalInterceptors.add(commandWorkerContainer.getWorker(clz,
-                            commandInterceptorConfig.isSpringBean()));
+                    globalInterceptors.add(commandWorkerContainer.getWorker(clz));
                 } catch (Exception e) {
                     throw new RuntimeException("", e);
                 }
@@ -67,6 +81,54 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
         for (Class<?> cls : classes) {
             analyzeClass(cls);
         }
+        
+		FolderWatcher watcher = new FolderWatcher(commandWorkerMeta.getWorkingDirectory());
+		watcher.addWatchEventListener(new WatchEventListener() {
+
+			@Override
+			public void onWatchEvent(WatchKey watchKey, WatchEvent event) {
+				Path dir = (Path) watchKey.watchable();
+				Path fullPath = dir.resolve((Path) event.context());
+				File file = fullPath.toFile();
+				if (file.getName().endsWith(".java")
+						&& file.exists()
+						&& (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event
+								.kind() == StandardWatchEventKinds.ENTRY_MODIFY)) {
+					String fileName = file.getName().substring(0, file.getName().indexOf("."));
+					try {
+						String packageName = "";
+						StringBuffer source = new StringBuffer();
+						List<String> lines = FileUtils.readLines(fullPath.toFile(), "UTF-8");
+						for(int i = 0; i < lines.size(); i++) {
+							String line = lines.get(i);
+							if (i == 0 && line.indexOf("package") != -1) {
+								packageName = line.substring(line.indexOf(" "),
+										line.length() - 1).trim();
+							}
+							source.append(line);
+						}
+						boolean success = complier.compile(fileName, source.toString());
+						if (success) {
+							ScriptLoader loader = new ScriptLoader(
+									commandWorkerMeta.getWorkingDirectory());
+							Class<?> clazz = loader.findClass(packageName + "."
+									+ fileName);
+							if (clazz != null) {
+								analyzeClass(clazz);
+							}
+						}
+					} catch (Exception e) {
+						LOGGER.error("RELOAD Scripts Error:" + fullPath, e);
+					}
+				}
+			}
+		});
+        String threadName = "脚本处理线程";
+        ThreadGroup group = new ThreadGroup(threadName);
+        NamedThreadFactory factory = new NamedThreadFactory(group, threadName);
+        Thread thread = factory.newThread(watcher);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void analyzeClass(Class<?> clazz) {
@@ -82,7 +144,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                         classInterceptorList = new ArrayList<Interceptor>();
                         for (CommandInterceptor interceptor : interceptors) {
                             classInterceptorList.add(commandWorkerContainer.getWorker(
-                                    interceptor.value(), interceptor.isSpringBean()));
+                                    interceptor.value()));
                         }
                     }
                 }
@@ -91,61 +153,48 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                 Method[] methods = clazz.getDeclaredMethods();
                 for (Method m : methods) {
                     CommandMapping commandMapping = m.getAnnotation(CommandMapping.class);
-                    if (null != commandMapping) {
-                        List<Interceptor> methodInterceptorList = null;
-                        MethodInterceptors methodInterceptors =
-                                m.getAnnotation(MethodInterceptors.class);
-                        if (null != methodInterceptors) {
-                            CommandInterceptor[] interceptors = methodInterceptors.value();
-                            if (null != interceptors && interceptors.length > 0) {
-                                methodInterceptorList = new ArrayList<Interceptor>();
-                                for (CommandInterceptor interceptor : interceptors) {
-                                    methodInterceptorList.add(commandWorkerContainer.getWorker(
-                                            interceptor.value(), interceptor.isSpringBean()));
-                                }
-                            }
-                        }
+					if (null != commandMapping) {
+						List<Interceptor> methodInterceptorList = null;
+						MethodInterceptors methodInterceptors = m
+								.getAnnotation(MethodInterceptors.class);
+						if (null != methodInterceptors) {
+							CommandInterceptor[] interceptors = methodInterceptors
+									.value();
+							if (null != interceptors && interceptors.length > 0) {
+								methodInterceptorList = new ArrayList<Interceptor>();
+								for (CommandInterceptor interceptor : interceptors) {
+									methodInterceptorList
+											.add(commandWorkerContainer
+													.getWorker(interceptor
+															.value()));
+								}
+							}
+						}
 
-                        Class<?>[] paramTypes = m.getParameterTypes();
-                        if ("".equals(commandWorker.workerName())) {
-                            if (commandMapping.isWildcard()) {
-                                wildCardEntities
-                                        .put(commandMapping.weight(),
-                                                new WildcardEntity(commandMapping.mapping(),
-                                                        new DefaultCommandResolver(m, paramTypes,
-                                                                clazz, commandWorkerContainer
-                                                                        .getWorker(clazz, true),
-                                                                globalInterceptors,
-                                                                classInterceptorList,
-                                                                methodInterceptorList)));
-                            } else {
-                                resolvers.put(commandMapping.mapping(),
-                                        new DefaultCommandResolver(m, paramTypes, clazz,
-                                                commandWorkerContainer.getWorker(clazz, true),
-                                                globalInterceptors, classInterceptorList,
-                                                methodInterceptorList));
-                            }
-                        } else {
-                            if (commandMapping.isWildcard()) {
-                                wildCardEntities.put(
-                                        commandMapping.weight(),
-                                        new WildcardEntity(commandMapping.mapping(),
-                                                new DefaultCommandResolver(m, paramTypes, clazz,
-                                                        commandWorkerContainer.getWorker(
-                                                                commandWorker.workerName(), true),
-                                                        globalInterceptors, classInterceptorList,
-                                                        methodInterceptorList)));
-                            } else {
-                                resolvers.put(
-                                        commandMapping.mapping(),
-                                        new DefaultCommandResolver(m, paramTypes, clazz,
-                                                commandWorkerContainer.getWorker(
-                                                        commandWorker.workerName(), true),
-                                                globalInterceptors, classInterceptorList,
-                                                methodInterceptorList));
-                            }
-                        }
-                    }
+						Class<?>[] paramTypes = m.getParameterTypes();
+						if (commandMapping.isWildcard()) {
+							wildCardEntities.put(
+									commandMapping.weight(),
+									new WildcardEntity(
+											commandMapping.mapping(),
+											new DefaultCommandResolver(m,
+													paramTypes, clazz,
+													commandWorkerContainer
+															.getWorker(clazz),
+													globalInterceptors,
+													classInterceptorList,
+													methodInterceptorList)));
+						} else {
+							resolvers.put(
+									commandMapping.mapping(),
+									new DefaultCommandResolver(m, paramTypes,
+											clazz, commandWorkerContainer
+													.getWorker(clazz),
+											globalInterceptors,
+											classInterceptorList,
+											methodInterceptorList));
+						}
+					}
                 }
             } catch (Exception e) {
                 throw new RuntimeException("error in analyzeClass", e);
@@ -172,20 +221,24 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
                             }
                         } else if (f.getName().endsWith(".jar")) {
                             JarFile jarFile = new JarFile(f);
-                            Enumeration<JarEntry> jarEntries = jarFile.entries();
-                            while (jarEntries.hasMoreElements()) {
-                                JarEntry jarEntry = jarEntries.nextElement();
-                                if (jarEntry.getName().endsWith(".class")) {
-
-                                    String jarEntryName = jarEntry.getName();
-                                    String classpath =
-                                            jarEntryName.substring(0, jarEntryName.length() - 6)
-                                                    .replace("/", ".");
-                                    if (commandWorkerMeta.isScanPackage(classpath)) {
-                                        list.add(Thread.currentThread().getContextClassLoader()
-                                                .loadClass(classpath));
-                                    }
-                                }
+                            try { 
+	                            Enumeration<JarEntry> jarEntries = jarFile.entries();
+	                            while (jarEntries.hasMoreElements()) {
+	                                JarEntry jarEntry = jarEntries.nextElement();
+	                                if (jarEntry.getName().endsWith(".class")) {
+	
+	                                    String jarEntryName = jarEntry.getName();
+	                                    String classpath =
+	                                            jarEntryName.substring(0, jarEntryName.length() - 6)
+	                                                    .replace("/", ".");
+	                                    if (commandWorkerMeta.isScanPackage(classpath)) {
+	                                        list.add(Thread.currentThread().getContextClassLoader()
+	                                                .loadClass(classpath));
+	                                    }
+	                                }
+	                            }
+                            } finally {  
+                            	jarFile.close();  
                             }
                         }
                     }

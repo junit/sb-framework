@@ -1,5 +1,6 @@
 package org.chinasb.common.executor;
 
+import java.io.File;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -27,6 +28,8 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
         Digester digester = new Digester();
         digester.setValidating(false);
         digester.addObjectCreate("executor", CommandWorkerConfig.class);
+        digester.addSetProperties("executor", "absolute-path", "absolutePath");
+        digester.addSetProperties("executor", "working-directory", "workingDirectory");
         digester.addCallMethod("executor/worker-scan", "addScanPackage", 0);
         digester.addObjectCreate("executor/worker-global-interceptor",
                 CommandInterceptorConfig.class);
@@ -41,6 +44,14 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
         }
     }
     
+
+	@Override
+	public String getWorkingDirectory() {
+		return commandWorkerConfig.isAbsolutePath() ? commandWorkerConfig
+				.getWorkingDirectory() : System.getProperty("user.dir")
+				+ File.separator + commandWorkerConfig.getWorkingDirectory();
+	}
+	
     @Override
     public boolean isScanPackage(String packageName) {
         for (String s : commandWorkerConfig.getScanPackages()) {

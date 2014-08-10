@@ -11,5 +11,5 @@ import org.chinasb.common.executor.Interceptor.Interceptor;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommandInterceptor {
 	Class<? extends Interceptor> value();
-	boolean isSpringBean() default false;
+	String description() default "";
 }

@@ -7,10 +7,28 @@ import java.util.List;
  * 指令工作器配置
  */
 public class CommandWorkerConfig {
+	private boolean absolutePath;
+	private String workingDirectory;
     private List<String> scanPackages = new ArrayList<String>();
     private List<CommandInterceptorConfig> globalInterceptorClasses = new ArrayList<CommandInterceptorConfig>();
 
-    public List<String> getScanPackages() {
+	public boolean isAbsolutePath() {
+		return absolutePath;
+	}
+
+	public void setAbsolutePath(String absolutePath) {
+		this.absolutePath = Boolean.parseBoolean(absolutePath);
+	}
+
+	public String getWorkingDirectory() {
+		return workingDirectory;
+	}
+
+	public void setWorkingDirectory(String workingDirectory) {
+		this.workingDirectory = workingDirectory;
+	}
+
+	public List<String> getScanPackages() {
         return scanPackages;
     }
 

@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommandMapping {
     String mapping() default "";
+    String description() default "";
     boolean isWildcard() default false;
     int weight() default 0;
 }
