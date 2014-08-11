@@ -7,25 +7,25 @@ import java.util.List;
  * 指令工作器配置
  */
 public class CommandWorkerConfig {
-	private boolean absolutePath;
-	private String workingDirectory;
+	private boolean reloadable = true;
+	private String directory;
     private List<String> scanPackages = new ArrayList<String>();
     private List<CommandInterceptorConfig> globalInterceptorClasses = new ArrayList<CommandInterceptorConfig>();
 
-	public boolean isAbsolutePath() {
-		return absolutePath;
+	public boolean isReloadable() {
+		return reloadable;
 	}
 
-	public void setAbsolutePath(String absolutePath) {
-		this.absolutePath = Boolean.parseBoolean(absolutePath);
+	public void setReloadable(boolean reloadable) {
+		this.reloadable = reloadable;
 	}
 
-	public String getWorkingDirectory() {
-		return workingDirectory;
+	public String getDirectory() {
+		return directory;
 	}
 
-	public void setWorkingDirectory(String workingDirectory) {
-		this.workingDirectory = workingDirectory;
+	public void setDirectory(String directory) {
+		this.directory = directory;
 	}
 
 	public List<String> getScanPackages() {

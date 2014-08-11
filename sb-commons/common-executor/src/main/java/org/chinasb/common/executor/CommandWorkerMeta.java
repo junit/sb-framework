@@ -10,10 +10,15 @@ import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
  */
 public interface CommandWorkerMeta {
 	/**
+	 * 是否开启重载
+	 * @return
+	 */
+	public boolean isReloadable();
+	/**
 	 * 获取工作目录
 	 * @return
 	 */
-	public String getWorkingDirectory();
+	public String getDirectory();
     /**
      * 类包判断
      * @param packageName

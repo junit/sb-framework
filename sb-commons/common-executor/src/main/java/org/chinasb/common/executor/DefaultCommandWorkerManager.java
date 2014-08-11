@@ -82,53 +82,61 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
             analyzeClass(cls);
         }
         
-		FolderWatcher watcher = new FolderWatcher(commandWorkerMeta.getWorkingDirectory());
-		watcher.addWatchEventListener(new WatchEventListener() {
+		if (commandWorkerMeta.isReloadable()) {
+			FolderWatcher watcher = new FolderWatcher(
+					commandWorkerMeta.getDirectory());
+			watcher.addWatchEventListener(new WatchEventListener() {
 
-			@Override
-			public void onWatchEvent(WatchKey watchKey, WatchEvent event) {
-				Path dir = (Path) watchKey.watchable();
-				Path fullPath = dir.resolve((Path) event.context());
-				File file = fullPath.toFile();
-				if (file.getName().endsWith(".java")
-						&& file.exists()
-						&& (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event
-								.kind() == StandardWatchEventKinds.ENTRY_MODIFY)) {
-					String fileName = file.getName().substring(0, file.getName().indexOf("."));
-					try {
-						String packageName = "";
-						StringBuffer source = new StringBuffer();
-						List<String> lines = FileUtils.readLines(fullPath.toFile(), "UTF-8");
-						for(int i = 0; i < lines.size(); i++) {
-							String line = lines.get(i);
-							if (i == 0 && line.indexOf("package") != -1) {
-								packageName = line.substring(line.indexOf(" "),
-										line.length() - 1).trim();
+				@Override
+				public void onWatchEvent(WatchKey watchKey, WatchEvent event) {
+					Path dir = (Path) watchKey.watchable();
+					Path fullPath = dir.resolve((Path) event.context());
+					File file = fullPath.toFile();
+					if (file.getName().endsWith(".java")
+							&& file.exists()
+							&& (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event
+									.kind() == StandardWatchEventKinds.ENTRY_MODIFY)) {
+						String fileName = file.getName().substring(0,
+								file.getName().indexOf("."));
+						try {
+							String packageName = "";
+							StringBuffer source = new StringBuffer();
+							List<String> lines = FileUtils.readLines(
+									fullPath.toFile(), "UTF-8");
+							for (int i = 0; i < lines.size(); i++) {
+								String line = lines.get(i);
+								if (i == 0 && line.indexOf("package") != -1) {
+									packageName = line.substring(
+											line.indexOf(" "),
+											line.length() - 1).trim();
+								}
+								source.append(line);
 							}
-							source.append(line);
-						}
-						boolean success = complier.compile(fileName, source.toString());
-						if (success) {
-							ScriptLoader loader = new ScriptLoader(
-									commandWorkerMeta.getWorkingDirectory());
-							Class<?> clazz = loader.findClass(packageName + "."
-									+ fileName);
-							if (clazz != null) {
-								analyzeClass(clazz);
+							boolean success = complier.compile(fileName,
+									source.toString());
+							if (success) {
+								ScriptLoader loader = new ScriptLoader(
+										commandWorkerMeta.getDirectory());
+								Class<?> clazz = loader.findClass(packageName
+										+ "." + fileName);
+								if (clazz != null) {
+									analyzeClass(clazz);
+								}
 							}
+						} catch (Exception e) {
+							LOGGER.error("Reload Scripts Error:" + fullPath, e);
 						}
-					} catch (Exception e) {
-						LOGGER.error("RELOAD Scripts Error:" + fullPath, e);
 					}
 				}
-			}
-		});
-        String threadName = "脚本处理线程";
-        ThreadGroup group = new ThreadGroup(threadName);
-        NamedThreadFactory factory = new NamedThreadFactory(group, threadName);
-        Thread thread = factory.newThread(watcher);
-        thread.setDaemon(true);
-        thread.start();
+			});
+			String threadName = "脚本处理线程";
+			ThreadGroup group = new ThreadGroup(threadName);
+			NamedThreadFactory factory = new NamedThreadFactory(group,
+					threadName);
+			Thread thread = factory.newThread(watcher);
+			thread.setDaemon(true);
+			thread.start();
+		}
     }
 
     private void analyzeClass(Class<?> clazz) {

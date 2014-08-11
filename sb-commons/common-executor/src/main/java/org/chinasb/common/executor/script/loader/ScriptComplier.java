@@ -79,7 +79,7 @@ public class ScriptComplier {
 		options.add("-classpath");
 		options.add(this.classpath);
 		options.add("-d");
-		options.add(commandWorkerMeta.getWorkingDirectory());
+		options.add(commandWorkerMeta.getDirectory());
 
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager,
 				diagnostics, options, null, jfiles);
