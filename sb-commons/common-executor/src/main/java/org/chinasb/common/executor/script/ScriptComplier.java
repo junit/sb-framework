@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.script.loader;
+package org.chinasb.common.executor.script;
 
 import java.io.File;
 import java.io.IOException;

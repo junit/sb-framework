@@ -9,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 脚本加载器
- * 
+ * 自定义类加载器
  * @author zhujuan
  */
 public class ScriptLoader extends ClassLoader {
@@ -23,24 +22,29 @@ public class ScriptLoader extends ClassLoader {
 		this.classPath = classPath;
 	}
 
-	/**
-	 * 加载类
-	 * @param path
-	 * @param name
-	 * @return
-	 */
+	@Override
+	public Class<?> loadClass(String name) {
+		return findClass(name);
+	}
+
+	@Override
 	public Class<?> findClass(String name) {
 		try {
 			byte[] byteCode = loadByteCode(name);
 			return super.defineClass(name, byteCode, 0, byteCode.length);
-		} catch (Exception e) {
-			LOGGER.error("加载脚本出错：", e);
+		} catch (IOException e) {
+			try {
+				return super.loadClass(name);
+			} catch (ClassNotFoundException ignore) {
+			}
+			LOGGER.error("加载类出错：", e);
+			return null;
 		}
-		return null;
 	}
 
 	/**
 	 * 加载字节码
+	 * 
 	 * @param name
 	 * @return
 	 * @throws IOException

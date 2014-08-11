@@ -3,9 +3,8 @@ package org.chinasb.common.executor;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
+import java.nio.file.WatchEvent.Kind;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -27,10 +26,10 @@ import org.chinasb.common.executor.annotation.CommandWorker;
 import org.chinasb.common.executor.annotation.interceptors.ClassInterceptors;
 import org.chinasb.common.executor.annotation.interceptors.MethodInterceptors;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
-import org.chinasb.common.executor.script.loader.ScriptComplier;
+import org.chinasb.common.executor.script.ScriptComplier;
 import org.chinasb.common.executor.script.loader.ScriptLoader;
-import org.chinasb.common.executor.watcher.FolderWatcher;
-import org.chinasb.common.executor.watcher.WatchEventListener;
+import org.chinasb.common.executor.script.watcher.FolderWatcher;
+import org.chinasb.common.executor.script.watcher.WatchEventListener;
 import org.chinasb.common.utility.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,64 +82,76 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
         }
         
 		if (commandWorkerMeta.isReloadable()) {
-			FolderWatcher watcher = new FolderWatcher(
+			final FolderWatcher watcher = new FolderWatcher(
 					commandWorkerMeta.getDirectory());
 			watcher.addWatchEventListener(new WatchEventListener() {
 
 				@Override
-				public void onWatchEvent(WatchKey watchKey, WatchEvent event) {
-					Path dir = (Path) watchKey.watchable();
-					Path fullPath = dir.resolve((Path) event.context());
-					File file = fullPath.toFile();
-					if (file.getName().endsWith(".java")
-							&& file.exists()
-							&& (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event
-									.kind() == StandardWatchEventKinds.ENTRY_MODIFY)) {
-						String fileName = file.getName().substring(0,
-								file.getName().indexOf("."));
+				public void onWatchEvent(String dir, Path file,
+						WatchEvent.Kind kind) {
+					File javaFile = file.toFile();
+					if (javaFile.exists()) {
+						String fileName = javaFile.getName().substring(0,
+								javaFile.getName().indexOf("."));
 						try {
 							String packageName = null;
-							StringBuffer source = new StringBuffer();
-							List<String> lines = FileUtils.readLines(
-									fullPath.toFile(), "UTF-8");
+							StringBuffer javaSource = new StringBuffer();
+							List<String> lines = FileUtils.readLines(javaFile,
+									"UTF-8");
 							for (int i = 0; i < lines.size(); i++) {
 								String line = lines.get(i);
-								if (packageName == null && line.indexOf("package") != -1) {
+								if (packageName == null
+										&& line.indexOf("package") != -1) {
 									packageName = line.substring(
 											line.indexOf(" "),
 											line.length() - 1).trim();
 								}
-								source.append(line);
+								javaSource.append(line);
 							}
 							boolean success = complier.compile(fileName,
-									source.toString());
+									javaSource.toString());
 							if (success) {
 								ScriptLoader loader = new ScriptLoader(
 										commandWorkerMeta.getDirectory());
 								Class<?> clazz = loader
-										.findClass(packageName == null ? ""
-												+ fileName : packageName + "."
-												+ fileName);
+										.loadClass(packageName == null ? fileName
+												: packageName + "." + fileName);
 								if (clazz != null) {
 									analyzeClass(clazz);
 								}
 							}
 						} catch (Exception e) {
-							LOGGER.error("Reload Scripts Error:" + fullPath, e);
+							LOGGER.error("Reload Scripts Error:" + file, e);
 						}
 					}
+				}
+
+				@Override
+				public boolean support(Path file, Kind kind) {
+					return file.toString().endsWith(".java");
 				}
 			});
 			String threadName = "脚本处理线程";
 			ThreadGroup group = new ThreadGroup(threadName);
 			NamedThreadFactory factory = new NamedThreadFactory(group,
 					threadName);
-			Thread thread = factory.newThread(watcher);
+			final Thread thread = factory.newThread(watcher);
 			thread.setDaemon(true);
 			thread.start();
+
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				public void run() {
+					watcher.setStarted(false);
+					try {
+						thread.join();
+					} catch (InterruptedException e) {
+						LOGGER.error("Failed during the JVM shutdown", e);
+					}
+				}
+			});
 		}
     }
-
+    
     private void analyzeClass(Class<?> clazz) {
         CommandWorker commandWorker = clazz.getAnnotation(CommandWorker.class);
         if (null != commandWorker) {
