@@ -99,13 +99,13 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 						String fileName = file.getName().substring(0,
 								file.getName().indexOf("."));
 						try {
-							String packageName = "";
+							String packageName = null;
 							StringBuffer source = new StringBuffer();
 							List<String> lines = FileUtils.readLines(
 									fullPath.toFile(), "UTF-8");
 							for (int i = 0; i < lines.size(); i++) {
 								String line = lines.get(i);
-								if (i == 0 && line.indexOf("package") != -1) {
+								if (packageName == null && line.indexOf("package") != -1) {
 									packageName = line.substring(
 											line.indexOf(" "),
 											line.length() - 1).trim();
@@ -117,8 +117,10 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 							if (success) {
 								ScriptLoader loader = new ScriptLoader(
 										commandWorkerMeta.getDirectory());
-								Class<?> clazz = loader.findClass(packageName
-										+ "." + fileName);
+								Class<?> clazz = loader
+										.findClass(packageName == null ? ""
+												+ fileName : packageName + "."
+												+ fileName);
 								if (clazz != null) {
 									analyzeClass(clazz);
 								}
