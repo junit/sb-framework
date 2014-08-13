@@ -8,7 +8,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -17,28 +16,27 @@ import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import org.chinasb.common.executor.CommandWorkerMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * 脚本编译
  * @author zhujuan
  *
  */
-@Component
 public class ScriptComplier {
 	private final static Logger LOGGER = LoggerFactory.getLogger(ScriptComplier.class);
 
 	private URLClassLoader parentClassLoader;
 	private String classpath;
-    @Autowired
-    private CommandWorkerMeta commandWorkerMeta;
+	private String outputpath;
     
-	@PostConstruct
-	protected void initialize() {
+	
+	public ScriptComplier(String outputpath) {
+		if (outputpath == null) {
+			throw new IllegalArgumentException("outputpath is null!");
+		}
+		this.outputpath = outputpath;
 		this.parentClassLoader = (URLClassLoader) this.getClass()
 				.getClassLoader();
 		this.buildClassPath();
@@ -51,7 +49,8 @@ public class ScriptComplier {
 			String p = url.getFile();
 			sb.append(p).append(File.pathSeparator);
 		}
-		this.classpath = sb.toString();
+		this.classpath = sb.append(new File(outputpath).toURI().getPath())
+				.append(File.pathSeparator).toString();
 	}
 	
 	/**
@@ -79,7 +78,7 @@ public class ScriptComplier {
 		options.add("-classpath");
 		options.add(this.classpath);
 		options.add("-d");
-		options.add(commandWorkerMeta.getDirectory());
+		options.add(outputpath);
 
 		JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager,
 				diagnostics, options, null, jfiles);

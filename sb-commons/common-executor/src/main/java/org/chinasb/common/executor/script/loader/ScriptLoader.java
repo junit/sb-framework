@@ -19,6 +19,9 @@ public class ScriptLoader extends ClassLoader {
 	private String classPath;
 
 	public ScriptLoader(String classPath) {
+		if(classPath == null) {
+			throw new IllegalArgumentException("classPath is null!");
+		}
 		this.classPath = classPath;
 	}
 
@@ -44,7 +47,6 @@ public class ScriptLoader extends ClassLoader {
 
 	/**
 	 * 加载字节码
-	 * 
 	 * @param name
 	 * @return
 	 * @throws IOException

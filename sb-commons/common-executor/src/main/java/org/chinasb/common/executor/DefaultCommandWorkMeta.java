@@ -29,7 +29,7 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
         digester.setValidating(false);
         digester.addObjectCreate("executor", CommandWorkerConfig.class);
         digester.addSetProperties("executor", "reloadable", "reloadable");
-        digester.addSetProperties("executor", "directory", "directory");
+        digester.addSetProperties("executor", "reload-directory", "directory");
         digester.addCallMethod("executor/worker-scan", "addScanPackage", 0);
         digester.addObjectCreate("executor/worker-global-interceptor",
                 CommandInterceptorConfig.class);
@@ -51,11 +51,8 @@ public class DefaultCommandWorkMeta implements CommandWorkerMeta {
 	
 	@Override
 	public String getDirectory() {
-		return commandWorkerConfig.getDirectory() == null ? System
-				.getProperty("user.dir") + File.separator + "scripts" : System
-				.getProperty("user.dir")
-				+ File.separator
-				+ commandWorkerConfig.getDirectory();
+		return commandWorkerConfig.getDirectory() == null ? "scripts"
+				: commandWorkerConfig.getDirectory();
 	}
 	
     @Override

@@ -2,6 +2,7 @@ package org.chinasb.common.executor;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
@@ -15,8 +16,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
 import org.chinasb.common.executor.Interceptor.Interceptor;
@@ -51,39 +50,52 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
     @Autowired
     private CommandWorkerContainer commandWorkerContainer;
     @Autowired
-    private CommandWorkerMeta commandWorkerMeta;
-    @Autowired
-    private ScriptComplier complier;
+    private CommandWorkerMeta commandWorkerMeta;    
 
-    @PostConstruct
-    protected void initialize() {
-        if (commandWorkerMeta.globalInterceptors().size() > 0) {
-            this.globalInterceptors = new ArrayList<Interceptor>();
-            for (CommandInterceptorConfig commandInterceptorConfig : commandWorkerMeta
-                    .globalInterceptors()) {
-                try {
-                    Class<Interceptor> clz =
-                            (Class<Interceptor>) Thread.currentThread().getContextClassLoader()
-                                    .loadClass(commandInterceptorConfig.getClassName());
-                    globalInterceptors.add(commandWorkerContainer.getWorker(clz));
-                } catch (Exception e) {
-                    throw new RuntimeException("", e);
-                }
-            }
-        }
-
-        File root =
-                new File(DefaultCommandWorkerManager.class.getClass().getResource("/").getFile());
-        String prefix = root.getAbsolutePath();
-        List<Class<?>> classes = new ArrayList<Class<?>>();
-        listCommandClass(root, prefix, classes);
-        for (Class<?> cls : classes) {
-            analyzeClass(cls);
-        }
-        
+    @Override
+	public void initialize(String classpath) {
+    	if(classpath == null) {
+    		throw new RuntimeException("Error in CommandWorker initialize, classpath is null");
+    	}
+    	if (commandWorkerMeta.globalInterceptors().size() > 0) {
+			this.globalInterceptors = new ArrayList<Interceptor>();
+			for (CommandInterceptorConfig commandInterceptorConfig : commandWorkerMeta
+					.globalInterceptors()) {
+				try {
+					Class<Interceptor> clz = (Class<Interceptor>) Thread
+							.currentThread().getContextClassLoader()
+							.loadClass(commandInterceptorConfig.getClassName());
+					globalInterceptors.add(commandWorkerContainer
+							.getWorker(clz));
+				} catch (Exception e) {
+					throw new RuntimeException("", e);
+				}
+			}
+		}
+    	
+//    	URL url = DefaultCommandWorkerManager.class.getProtectionDomain()
+//    			.getCodeSource().getLocation().getPath();
+		try {
+			classpath = URLDecoder.decode(classpath, "utf-8");
+		} catch (Exception e) {
+			throw new RuntimeException("error in decode chinese directory", e);
+		}
+		if (classpath.endsWith(".jar")) {
+			classpath = classpath.substring(0, classpath.lastIndexOf("/") + 1);
+		}
+		File root = new File(classpath);
+		String prefix = root.getAbsolutePath();
+		List<Class<?>> classes = new ArrayList<Class<?>>();
+		listCommandClass(root, prefix, classes);
+		for (Class<?> cls : classes) {
+			analyzeClass(cls);
+		}
+		// enable class reload
 		if (commandWorkerMeta.isReloadable()) {
-			final FolderWatcher watcher = new FolderWatcher(
-					commandWorkerMeta.getDirectory());
+			final String reloadableDirectory = prefix + File.separator
+					+ commandWorkerMeta.getDirectory();
+			final ScriptComplier complier = new ScriptComplier(reloadableDirectory);
+			FolderWatcher watcher = new FolderWatcher(reloadableDirectory);
 			watcher.addWatchEventListener(new WatchEventListener() {
 
 				@Override
@@ -111,8 +123,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 							boolean success = complier.compile(fileName,
 									javaSource.toString());
 							if (success) {
-								ScriptLoader loader = new ScriptLoader(
-										commandWorkerMeta.getDirectory());
+								ScriptLoader loader = new ScriptLoader(reloadableDirectory);
 								Class<?> clazz = loader
 										.loadClass(packageName == null ? fileName
 												: packageName + "." + fileName);
@@ -121,36 +132,30 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 								}
 							}
 						} catch (Exception e) {
-							LOGGER.error("Reload Scripts Error:" + file, e);
+							LOGGER.error("error in reload class:" + file, e);
 						}
 					}
 				}
 
 				@Override
 				public boolean support(Path file, Kind kind) {
-					return file.toString().endsWith(".java");
+					return checkEndsWith(file.toString(), ".java", false);
 				}
+				
+			    private boolean checkEndsWith(String str, String end, boolean ingoreCase) {
+			        int endLen = end.length();
+			        return str.regionMatches(ingoreCase, str.length() - endLen, end, 0, endLen);
+			    }
 			});
 			String threadName = "脚本处理线程";
 			ThreadGroup group = new ThreadGroup(threadName);
 			NamedThreadFactory factory = new NamedThreadFactory(group,
 					threadName);
-			final Thread thread = factory.newThread(watcher);
+			Thread thread = factory.newThread(watcher);
 			thread.setDaemon(true);
 			thread.start();
-
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				public void run() {
-					watcher.setStarted(false);
-					try {
-						thread.join();
-					} catch (InterruptedException e) {
-						LOGGER.error("Failed during the JVM shutdown", e);
-					}
-				}
-			});
 		}
-    }
+	}
     
     private void analyzeClass(Class<?> clazz) {
         CommandWorker commandWorker = clazz.getAnnotation(CommandWorker.class);

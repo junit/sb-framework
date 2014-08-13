@@ -1,7 +1,6 @@
 package org.chinasb.common.executor.script.watcher;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +27,6 @@ import com.sun.nio.file.SensitivityWatchEventModifier;
 
 /**
  * 目录监控
- * 
  * @author zhujuan
  *
  */
@@ -44,6 +41,9 @@ public class FolderWatcher implements Runnable {
 	private final List<WatchEventListener> listeners = new ArrayList<WatchEventListener>();
 
 	public FolderWatcher(String watchFloder) {
+		if(watchFloder == null) {
+			throw new IllegalArgumentException("watchFloder is null!");
+		}
 		this.watchFloder = watchFloder;
 		try {
 			File file = new File(watchFloder);
@@ -125,11 +125,10 @@ public class FolderWatcher implements Runnable {
 
 				if (Files.isDirectory(child, LinkOption.NOFOLLOW_LINKS)) {
 					registerDirectory(child);
-					final File[] javaFiles = child.toFile().listFiles(
-							(FileFilter) new SuffixFileFilter(".java"));
-					for (File javaFile : javaFiles) {
-						final String parentFolder = javaFile.getParent();
-						handleWatchEvent(parentFolder, javaFile.toPath(), kind);
+					final File[] files = child.toFile().listFiles();
+					for (File file : files) {
+						final String parentFolder = file.getParent();
+						handleWatchEvent(parentFolder, file.toPath(), kind);
 					}
 				} else {
 					handleWatchEvent(dir.toString()
