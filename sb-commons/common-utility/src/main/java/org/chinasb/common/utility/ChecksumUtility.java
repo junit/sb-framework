@@ -16,9 +16,9 @@ import org.springframework.util.DigestUtils;
  * @author zhujuan
  *
  */
-public class MD5Checksum {
+public class ChecksumUtility {
 	private static final Logger logger = LoggerFactory
-			.getLogger(MD5Checksum.class.getName());
+			.getLogger(ChecksumUtility.class.getName());
 
 	/*
 	 * Calculate checksum of a File using MD5 algorithm
@@ -34,7 +34,7 @@ public class MD5Checksum {
 			while ((numOfBytesRead = fis.read(buffer)) > 0) {
 				md.update(buffer, 0, numOfBytesRead);
 			}
-			return HexDump.toHexString(md.digest());
+			return HexDumpUtility.toHexString(md.digest());
 		} catch (FileNotFoundException ex) {
 			logger.error(null, ex);
 		} catch (IOException ex) {

@@ -1,9 +1,9 @@
 package org.chinasb.common.disruptor;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.UUID;
 
-import org.chinasb.common.utility.UUIDUtils;
+import org.chinasb.common.utility.UUIDUtility;
 
 /**
  * 事件对象
@@ -27,7 +27,7 @@ public class Event<T> implements Serializable {
 
     public synchronized UUID getId() {
         if(null == id) {
-            id = UUIDUtils.create();
+            id = UUIDUtility.create();
         }
         return id;
     }

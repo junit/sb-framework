@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 
  * @author Jon Brisbin
  */
-public abstract class UUIDUtils {
+public abstract class UUIDUtility {
 
     private static boolean IS_THREADLOCALRANDOM_AVAILABLE = false;
     private static Random random;
@@ -22,7 +22,7 @@ public abstract class UUIDUtils {
     static {
         try {
             IS_THREADLOCALRANDOM_AVAILABLE =
-                    null != UUIDUtils.class.getClassLoader().loadClass(
+                    null != UUIDUtility.class.getClassLoader().loadClass(
                             "java.util.concurrent.ThreadLocalRandom");
         } catch (ClassNotFoundException e) {}
 
@@ -33,7 +33,7 @@ public abstract class UUIDUtils {
         }
     }
 
-    private UUIDUtils() {}
+    private UUIDUtility() {}
 
     /**
      * Create a new random UUID.

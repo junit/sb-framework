@@ -7,7 +7,7 @@ import java.util.List;
  * 集合工具类
  * @author zhujuan
  */
-public abstract class CollectionUtils {
+public abstract class CollectionUtility {
     
     /**
      * 拷贝数据集合

@@ -21,7 +21,7 @@ import org.chinasb.common.db.dao.CommonDao;
 import org.chinasb.common.db.executor.DbCallback;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.BaseModel;
-import org.chinasb.common.utility.CollectionUtils;
+import org.chinasb.common.utility.CollectionUtility;
 import org.chinasb.common.utility.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -289,7 +289,7 @@ public class DbServiceImpl implements DbService {
                         maxSize % subCount == 0 ? maxSize / subCount : maxSize / subCount + 1;
                 for (int index = 0; index < maxCount; index++) {
                     List<BaseModel<?>> subList =
-                            CollectionUtils.subListCopy(list, subCount * index, subCount);
+                            CollectionUtility.subListCopy(list, subCount * index, subCount);
                     updateEntityIntime(new Object[] {subList});
                 }
             }
