@@ -28,6 +28,7 @@
     	<module>common-db</module>
     	<module>common-disruptor</module>
 		<module>common-executor</module>
+    	<module>common-jreloader</module>
 		<module>common-lock</module>
 		<module>common-rhino</module>
 		<module>common-socket</module>

@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.script;
+package org.chinasb.common.jreloader;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,15 +24,15 @@ import org.slf4j.LoggerFactory;
  * @author zhujuan
  *
  */
-public class ScriptComplier {
-	private final static Logger LOGGER = LoggerFactory.getLogger(ScriptComplier.class);
+public class JComplier {
+	private final static Logger LOGGER = LoggerFactory.getLogger(JComplier.class);
 
 	private URLClassLoader parentClassLoader;
 	private String classpath;
 	private String outputpath;
     
 	
-	public ScriptComplier(String outputpath) {
+	public JComplier(String outputpath) {
 		if (outputpath == null) {
 			throw new IllegalArgumentException("outputpath is null!");
 		}

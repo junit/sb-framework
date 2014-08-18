@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.script.loader;
+package org.chinasb.common.jreloader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
  * 自定义类加载器
  * @author zhujuan
  */
-public class ScriptLoader extends ClassLoader {
+public class JReLoader extends ClassLoader {
 	private final static Logger LOGGER = LoggerFactory
-			.getLogger(ScriptLoader.class);
+			.getLogger(JReLoader.class);
 
 	private String classPath;
 
-	public ScriptLoader(String classPath) {
+	public JReLoader(String classPath) {
 		if(classPath == null) {
 			throw new IllegalArgumentException("classPath is null!");
 		}

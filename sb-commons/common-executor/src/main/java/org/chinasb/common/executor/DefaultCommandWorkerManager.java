@@ -25,10 +25,10 @@ import org.chinasb.common.executor.annotation.CommandWorker;
 import org.chinasb.common.executor.annotation.interceptors.ClassInterceptors;
 import org.chinasb.common.executor.annotation.interceptors.MethodInterceptors;
 import org.chinasb.common.executor.configuration.CommandInterceptorConfig;
-import org.chinasb.common.executor.script.ScriptComplier;
-import org.chinasb.common.executor.script.loader.ScriptLoader;
-import org.chinasb.common.executor.script.watcher.FolderWatcher;
-import org.chinasb.common.executor.script.watcher.WatchEventListener;
+import org.chinasb.common.jreloader.JComplier;
+import org.chinasb.common.jreloader.JReLoader;
+import org.chinasb.common.jreloader.watcher.FolderWatcher;
+import org.chinasb.common.jreloader.watcher.WatchEventListener;
 import org.chinasb.common.utility.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +94,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 		if (commandWorkerMeta.isReloadable()) {
 			final String reloadableDirectory = prefix + File.separator
 					+ commandWorkerMeta.getDirectory();
-			final ScriptComplier complier = new ScriptComplier(reloadableDirectory);
+			final JComplier complier = new JComplier(reloadableDirectory);
 			FolderWatcher watcher = new FolderWatcher(reloadableDirectory);
 			watcher.addWatchEventListener(new WatchEventListener() {
 
@@ -123,7 +123,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 							boolean success = complier.compile(fileName,
 									javaSource.toString());
 							if (success) {
-								ScriptLoader loader = new ScriptLoader(reloadableDirectory);
+								JReLoader loader = new JReLoader(reloadableDirectory);
 								Class<?> clazz = loader
 										.loadClass(packageName == null ? fileName
 												: packageName + "." + fileName);
@@ -147,7 +147,7 @@ public class DefaultCommandWorkerManager implements CommandWorkerManager {
 			        return str.regionMatches(ingoreCase, str.length() - endLen, end, 0, endLen);
 			    }
 			});
-			String threadName = "脚本处理线程";
+			String threadName = "[CommandWorker脚本重载线程]";
 			ThreadGroup group = new ThreadGroup(threadName);
 			NamedThreadFactory factory = new NamedThreadFactory(group,
 					threadName);

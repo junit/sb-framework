@@ -1,4 +1,4 @@
-package org.chinasb.common.executor.script.watcher;
+package org.chinasb.common.jreloader.watcher;
 
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
