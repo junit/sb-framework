@@ -1,4 +1,4 @@
-package org.chinasb.common.utility;
+package org.chinasb.common.thread;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author zhujuan
  */
 public class NamedThreadFactory implements ThreadFactory {
-    final ThreadGroup group;
-    final AtomicInteger threadNumber = new AtomicInteger(1);
-    final String namePrefix;
+	private final AtomicInteger threadNumber = new AtomicInteger(1);
+	private final ThreadGroup group;
+	private final String namePrefix;
 
     /**
      * 构造器

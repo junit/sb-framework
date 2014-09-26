@@ -33,6 +33,7 @@
 		<module>common-rhino</module>
 		<module>common-socket</module>
 		<module>common-utility</module>
+    <module>common-thread</module>
   </modules>
 
 	<dependencies>

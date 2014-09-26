@@ -1,9 +1,6 @@
 package org.chinasb.common.disruptor;
 
 import java.io.Serializable;
-import java.util.UUID;
-
-import org.chinasb.common.utility.UUIDUtility;
 
 /**
  * 事件对象
@@ -14,7 +11,6 @@ public class Event<T> implements Serializable {
     
     private static final long serialVersionUID = 7447332262815727338L;
     
-    private volatile UUID    id;
     private volatile T       data;
 
     public Event(T data) {
@@ -25,16 +21,10 @@ public class Event<T> implements Serializable {
         return new Event<T>(obj);
     }
 
-    public synchronized UUID getId() {
-        if(null == id) {
-            id = UUIDUtility.create();
-        }
-        return id;
-    }
-
     public T getData() {
         return data;
     }
+    
     public Event<T> setData(T data) {
         this.data = data;
         return this;
@@ -50,6 +40,6 @@ public class Event<T> implements Serializable {
 
     @Override
     public String toString() {
-        return "Event{" + "id=" + id + ", data=" + data + '}';
+        return "Event{" + "data=" + data + '}';
     }
 }

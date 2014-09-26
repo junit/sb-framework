@@ -29,7 +29,7 @@ import org.chinasb.common.jreloader.JComplier;
 import org.chinasb.common.jreloader.JReLoader;
 import org.chinasb.common.jreloader.watcher.FolderWatcher;
 import org.chinasb.common.jreloader.watcher.WatchEventListener;
-import org.chinasb.common.utility.NamedThreadFactory;
+import org.chinasb.common.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
