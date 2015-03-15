@@ -24,7 +24,8 @@ public abstract class UUIDUtility {
             IS_THREADLOCALRANDOM_AVAILABLE =
                     null != UUIDUtility.class.getClassLoader().loadClass(
                             "java.util.concurrent.ThreadLocalRandom");
-        } catch (ClassNotFoundException e) {}
+        } catch (ClassNotFoundException e) {
+        }
 
         byte[] seed = new SecureRandom().generateSeed(8);
         leastSigBits = new BigInteger(seed).longValue();

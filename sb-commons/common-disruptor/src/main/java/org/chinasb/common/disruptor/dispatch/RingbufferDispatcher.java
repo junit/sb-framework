@@ -4,8 +4,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.chinasb.common.NamedThreadFactory;
 import org.chinasb.common.disruptor.Event;
-import org.chinasb.common.thread.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +52,7 @@ public class RingbufferDispatcher extends BaseLifecycleDispatcher {
 			throw new IllegalArgumentException("bufferSize must be power of 2.");
 		}
 
-		ThreadGroup group = new ThreadGroup(name);
-		NamedThreadFactory factory = new NamedThreadFactory(group, name);
+		NamedThreadFactory factory = new NamedThreadFactory(name);
 		if (null == executor) {
 			this.executor = Executors.newFixedThreadPool(eventThreads, factory);
 		} else {

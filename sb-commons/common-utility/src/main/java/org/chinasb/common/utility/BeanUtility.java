@@ -21,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 
 /**
  * Bean工具类
+ * 
  * @author zhujuan
  */
 public class BeanUtility {

@@ -4,14 +4,17 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>sb-commons</artifactId>
-		<groupId>org.chinasb.common</groupId>
+		<artifactId>sb-commons-parent</artifactId>
+		<groupId>org.chinasb</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>common-socket</artifactId>
-	<name>common-socket</name>
-
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>The socket module of sb-commons project</description>
+	<properties>
+		<skip_maven_deploy>true</skip_maven_deploy>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -21,7 +24,6 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.19.Final</version>
 		</dependency>
 	</dependencies>
 </project>

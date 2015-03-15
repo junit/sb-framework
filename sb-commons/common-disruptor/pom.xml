@@ -4,17 +4,25 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>sb-commons</artifactId>
-		<groupId>org.chinasb.common</groupId>
+		<artifactId>sb-commons-parent</artifactId>
+		<groupId>org.chinasb</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>common-disruptor</artifactId>
-	<name>common-disruptor</name>
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>The disruptor module of sb-commons project</description>
+	<properties>
+		<skip_maven_deploy>true</skip_maven_deploy>
+	</properties>	
 	<dependencies>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>common-thread</artifactId>
+			<artifactId>common-threadpool</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -25,7 +33,6 @@
 		<dependency>
 			<groupId>com.lmax</groupId>
 			<artifactId>disruptor</artifactId>
-			<version>3.2.1</version>
 		</dependency>
 	</dependencies>
 </project>

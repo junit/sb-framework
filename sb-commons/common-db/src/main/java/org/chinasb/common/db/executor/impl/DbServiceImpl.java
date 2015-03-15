@@ -17,11 +17,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
+import org.chinasb.common.NamedThreadFactory;
 import org.chinasb.common.db.dao.CommonDao;
 import org.chinasb.common.db.executor.DbCallback;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.BaseModel;
-import org.chinasb.common.thread.NamedThreadFactory;
 import org.chinasb.common.utility.CollectionUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,8 +152,7 @@ public class DbServiceImpl implements DbService {
      */
     @PostConstruct
     void initialize() {
-        ThreadGroup threadGroup = new ThreadGroup("缓存模块");
-        NamedThreadFactory threadFactory = new NamedThreadFactory(threadGroup, "入库线程池");
+        NamedThreadFactory threadFactory = new NamedThreadFactory("缓存模块:入库线程池");
         DB_POOL_SERVICE =
                 new ThreadPoolExecutor(dbPoolSize.intValue(), dbPoolMaxSize.intValue(),
                         keepAliveTime.intValue(), TimeUnit.SECONDS,
@@ -161,11 +160,8 @@ public class DbServiceImpl implements DbService {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Initialize DB Daemon Thread...");
         }
-        String threadName = "数据库入库Daemon线程";
-        ThreadGroup group = new ThreadGroup(threadName);
-        NamedThreadFactory factory = new NamedThreadFactory(group, threadName);
+        NamedThreadFactory factory = new NamedThreadFactory("数据库入库Daemon线程", true);
         Thread thread = factory.newThread(CUSTOMER_TASK);
-        thread.setDaemon(true);
         thread.start();
 
         Thread pollCachedObjThread = factory.newThread(HANDLER_CACHED_OBJ_TASK);

@@ -2,12 +2,14 @@ package org.chinasb.common.utility;
 
 /**
  * 数值转换工具类
+ * 
  * @author zhujuan
  */
 public class NumberUtility {
-    
+
     /**
      * Number类型转换
+     * 
      * @param resultType
      * @param value
      * @return

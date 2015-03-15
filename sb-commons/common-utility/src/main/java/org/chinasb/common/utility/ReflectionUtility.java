@@ -10,6 +10,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * 反射工具类
+ * 
  * @author zhujuan
  */
 public abstract class ReflectionUtility extends ReflectionUtils {
@@ -46,7 +47,8 @@ public abstract class ReflectionUtility extends ReflectionUtils {
         }
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
-            if ((ff != null) && (!(ff.matches(field)))) continue;
+            if ((ff != null) && (!(ff.matches(field))))
+                continue;
             try {
                 fc.doWith(field);
             } catch (IllegalAccessException ex) {

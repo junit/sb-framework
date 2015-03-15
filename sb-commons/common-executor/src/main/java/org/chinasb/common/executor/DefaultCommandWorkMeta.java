@@ -1,6 +1,5 @@
 package org.chinasb.common.executor;
 
-import java.io.File;
 import java.util.List;
 
 import javax.annotation.PostConstruct;

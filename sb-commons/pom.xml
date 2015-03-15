@@ -1,76 +1,204 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.chinasb.common</groupId>
-	<artifactId>sb-commons</artifactId>
-	<packaging>pom</packaging>
+	<groupId>org.chinasb</groupId>
+	<artifactId>sb-commons-parent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-
-	<name>sb-commons</name>
-	<url>http://www.chinasb.org</url>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.slf4j.version>1.7.6</org.slf4j.version>
-		<org.springframework.version>4.0.3.RELEASE</org.springframework.version>
-	</properties>
-
-	<developers>
-		<developer>
-			<id>zhujuan</id>
-			<name>Ethan Lu</name>
-			<email>ethan@5k6.org</email>
-		</developer>
-	</developers>
-
+	<packaging>pom</packaging>
+	<name>${project.artifactId}</name>
+	<description>The parent project of sb-commons</description>
+	<url>https://github.com/junit/sb-framework/</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<organization>
+		<name>ChinaSb</name>
+		<url>http://www.chinasb.org</url>
+	</organization>
 	<modules>
+		<module>sb-commons</module>
 		<module>common-basedb</module>
-    	<module>common-db</module>
-    	<module>common-disruptor</module>
+		<module>common-db</module>
+		<module>common-disruptor</module>
 		<module>common-executor</module>
-    	<module>common-jreloader</module>
+		<module>common-jreloader</module>
 		<module>common-lock</module>
 		<module>common-rhino</module>
 		<module>common-socket</module>
+		<module>common-threadpool</module>
 		<module>common-utility</module>
-    <module>common-thread</module>
-  </modules>
+	</modules>
+	<properties>
+		<!-- Build args -->
+		<skip_maven_deploy>true</skip_maven_deploy>
+		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${org.slf4j.version}</version>
-		</dependency>
-	</dependencies>
+		<!-- Common libs -->
+		<slf4j_version>1.7.6</slf4j_version>
+		<spring_version>4.1.5.RELEASE</spring_version>
+		<jackson_version>1.9.13</jackson_version>
+		<poi_version>3.10-FINAL</poi_version>
+		<guava_version>18.0</guava_version>
+		<hibernate_version>4.3.5.Final</hibernate_version>
+		<disruptor_version>3.3.2</disruptor_version>
+		<commons_digester3_version>3.2</commons_digester3_version>
+		<commons_io_version>2.4</commons_io_version>
+		<rhino_version>1.7R4</rhino_version>
+		<netty_version>5.0.0.Alpha2</netty_version>
+		<commons_beanutils_version>1.9.2</commons_beanutils_version>
 
+		<!-- for maven compiler plugin -->
+		<maven_compiler_plugin_version>3.1</maven_compiler_plugin_version>
+		<compiler_version>1.8</compiler_version>
+		<java_source_version>1.8</java_source_version>
+		<java_target_version>1.8</java_target_version>
+		<file_encoding>UTF-8</file_encoding>
+
+		<maven_source_plugin_version>2.1.1</maven_source_plugin_version>
+		<maven_jar_plugin_version>2.3.2</maven_jar_plugin_version>
+		<maven_javadoc_plugin_version>2.3.1</maven_javadoc_plugin_version>
+		<maven_deploy_plugin_version>2.7</maven_deploy_plugin_version>
+	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-orm</artifactId>
+				<version>${spring_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-mapper-asl</artifactId>
+				<version>${jackson_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${poi_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.lmax</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${disruptor_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-digester3</artifactId>
+				<version>${commons_digester3_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons_io_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mozilla</groupId>
+				<artifactId>rhino</artifactId>
+				<version>${rhino_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>${commons_beanutils_version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<compilerVersion>1.7</compilerVersion>
-					<fork>true</fork>
-					<source>1.6</source>
-					<target>1.6</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<debug>true</debug>
-					<optimize>true</optimize>
-					<showDeprecation>true</showDeprecation>
-					<showWarnings>true</showWarnings>
-					<compilerArgument>-Xlint:-options</compilerArgument>
-			        <!-- XXX: maven-release-plugin complains - MRELEASE-715 -->
-			        <!--
-			        <compilerArguments>
-			          <Xlint:-options />
-			          <Xlint:unchecked />
-			          <Xlint:deprecation />
-			        </compilerArguments>
-			        -->
+					<archive>
+						<addMavenDescriptor>true</addMavenDescriptor>
+						<index>true</index>
+						<manifest>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>${skip_maven_deploy}</skip>
 				</configuration>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven_jar_plugin_version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>${maven_deploy_plugin_version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven_compiler_plugin_version}</version>
+					<configuration>
+						<compilerVersion>${compiler_version}</compilerVersion>
+						<fork>true</fork>
+						<source>${java_source_version}</source>
+						<target>${java_target_version}</target>
+						<encoding>${file_encoding}</encoding>
+						<debug>true</debug>
+						<optimize>true</optimize>
+						<showDeprecation>true</showDeprecation>
+						<showWarnings>true</showWarnings>
+						<compilerArgument>-Xlint:-options</compilerArgument>
+						<!-- XXX: maven-release-plugin complains - MRELEASE-715 -->
+						<!-- <compilerArguments> <Xlint:-options /> <Xlint:unchecked /> <Xlint:deprecation 
+							/> </compilerArguments> -->
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
+	<developers>
+		<developer>
+			<id>zhujuan</id>
+			<name>Ethan Lu</name>
+			<email>ethanote AT gmail.com</email>
+		</developer>
+	</developers>
 </project>

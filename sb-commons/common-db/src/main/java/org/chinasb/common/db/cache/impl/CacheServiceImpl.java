@@ -7,10 +7,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.PostConstruct;
 
+import org.chinasb.common.Constants;
 import org.chinasb.common.db.cache.CachedService;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.CacheObject;
-import org.chinasb.common.utility.TimeConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +49,11 @@ public class CacheServiceImpl implements CachedService {
 
     @Autowired
     private DbService dbService;
-    private static int ONE_MIN_MILISECONDS = TimeConstant.ONE_MINUTE_MILLISECOND;
+    private static int ONE_MIN_MILISECONDS = Constants.ONE_MINUTE_MILLISECOND;
     /**
      * 最大延长时间
      */
-    private static int MAX_EXTEND_MILISECONDS = TimeConstant.ONE_MINUTE_MILLISECOND * 10;
+    private static int MAX_EXTEND_MILISECONDS = Constants.ONE_MINUTE_MILLISECOND * 10;
     /**
      * 通用对象缓存
      */

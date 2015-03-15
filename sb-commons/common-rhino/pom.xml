@@ -4,14 +4,17 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>sb-commons</artifactId>
-		<groupId>org.chinasb.common</groupId>
+		<artifactId>sb-commons-parent</artifactId>
+		<groupId>org.chinasb</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>common-rhino</artifactId>
-	<name>common-rhino</name>
-	
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>The rhino module of sb-commons project</description>
+	<properties>
+		<skip_maven_deploy>true</skip_maven_deploy>
+	</properties>	
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -21,12 +24,10 @@
 		<dependency>
 			<groupId>org.mozilla</groupId>
 			<artifactId>rhino</artifactId>
-			<version>1.7R4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>17.0</version>
 		</dependency>
 	</dependencies>
 </project>

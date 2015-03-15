@@ -17,6 +17,7 @@ import org.springframework.util.SystemPropertyUtils;
 
 /**
  * 类包工具类
+ * 
  * @author zhujuan
  */
 public class PackageUtility {
@@ -29,6 +30,7 @@ public class PackageUtility {
 
     /**
      * 扫描类包
+     * 
      * @param packageNames
      * @return
      */
@@ -70,6 +72,7 @@ public class PackageUtility {
 
     /**
      * 解析类包路径
+     * 
      * @param basePackage
      * @return
      */

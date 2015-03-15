@@ -7,21 +7,22 @@
 		<groupId>org.chinasb</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>common-jreloader</artifactId>
+	<artifactId>common-threadpool</artifactId>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
-	<description>The jreloader module of sb-commons project</description>	
+	<description>The threadpool module of sb-commons project</description>
 	<properties>
 		<skip_maven_deploy>true</skip_maven_deploy>
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>common-utility</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 	</dependencies>
 </project>

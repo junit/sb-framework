@@ -4,23 +4,29 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>sb-commons</artifactId>
-		<groupId>org.chinasb.common</groupId>
+		<artifactId>sb-commons-parent</artifactId>
+		<groupId>org.chinasb</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	
 	<artifactId>common-utility</artifactId>
-	<name>common-utility</name>
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>The utility module of sb-commons project</description>
+	<properties>
+		<skip_maven_deploy>true</skip_maven_deploy>
+	</properties>	
 	<dependencies>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
-			<version>1.8.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>${org.springframework.version}</version>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 	</dependencies>
 </project>

@@ -1,6 +1,7 @@
 package org.chinasb.common.db.model;
 
-import org.chinasb.common.utility.TimeConstant;
+import org.chinasb.common.Constants;
+
 
 /**
  * 缓存对象
@@ -32,7 +33,7 @@ public class CacheObject {
     public static CacheObject valueOf(Object entity) {
         CacheObject entityCacheObject = new CacheObject();
         entityCacheObject.entity = entity;
-        entityCacheObject.ttl = TimeConstant.ONE_DAY_MILLISECOND;
+        entityCacheObject.ttl = Constants.ONE_DAY_MILLISECOND;
         entityCacheObject.createTime = System.currentTimeMillis();
         entityCacheObject.expireTime = (entityCacheObject.createTime + entityCacheObject.ttl);
         return entityCacheObject;
