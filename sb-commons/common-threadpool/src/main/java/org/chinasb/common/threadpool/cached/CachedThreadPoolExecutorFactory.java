@@ -21,6 +21,20 @@ import org.chinasb.common.threadpool.ExecutorFactory;
 public class CachedThreadPoolExecutorFactory implements ExecutorFactory {
 
     @Override
+    public Executor getExecutor() {
+        String name = Constants.DEFAULT_THREAD_NAME;
+        int cores = Constants.DEFAULT_CORE_THREADS;
+        int threads = Integer.MAX_VALUE;
+        int queues = Constants.DEFAULT_QUEUES;
+        int alive = Constants.DEFAULT_ALIVE;
+        return new ThreadPoolExecutor(cores, threads, alive, TimeUnit.MILLISECONDS,
+                queues == 0 ? new SynchronousQueue<Runnable>()
+                        : (queues < 0 ? new LinkedBlockingQueue<Runnable>()
+                                : new LinkedBlockingQueue<Runnable>(queues)),
+                new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
+    }
+    
+    @Override
     public Executor getExecutor(URL url) {
         String name = url.getParameter(Constants.THREAD_NAME_KEY, Constants.DEFAULT_THREAD_NAME);
         int cores = url.getParameter(Constants.CORE_THREADS_KEY, Constants.DEFAULT_CORE_THREADS);
@@ -31,6 +45,6 @@ public class CachedThreadPoolExecutorFactory implements ExecutorFactory {
         		queues == 0 ? new SynchronousQueue<Runnable>() : 
         			(queues < 0 ? new LinkedBlockingQueue<Runnable>() 
         					: new LinkedBlockingQueue<Runnable>(queues)),
-        		new NamedThreadFactory(name, true), new AbortPolicyWithReport(name, url));
+        		new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
     }
 }

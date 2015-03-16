@@ -10,5 +10,7 @@ import org.chinasb.common.URL;
  *
  */
 public interface ExecutorFactory {
+    Executor getExecutor();
+
     Executor getExecutor(URL url);
 }

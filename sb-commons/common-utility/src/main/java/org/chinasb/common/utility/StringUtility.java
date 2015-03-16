@@ -301,20 +301,6 @@ public final class StringUtility {
         return parseKeyValuePair(qs, "\\&");
     }
 
-    public static String getServiceKey(Map<String, String> ps) {
-        StringBuilder buf = new StringBuilder();
-        String group = ps.get(Constants.GROUP_KEY);
-        if (group != null && group.length() > 0) {
-            buf.append(group).append("/");
-        }
-        buf.append(ps.get(Constants.INTERFACE_KEY));
-        String version = ps.get(Constants.VERSION_KEY);
-        if (version != null && version.length() > 0) {
-            buf.append(":").append(version);
-        }
-        return buf.toString();
-    }
-
     public static String toQueryString(Map<String, String> ps) {
         StringBuilder buf = new StringBuilder();
         if (ps != null && ps.size() > 0) {

@@ -6,9 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.chinasb.common.Constants;
 import org.chinasb.common.NamedThreadFactory;
-import org.chinasb.common.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,17 +95,5 @@ public class ExecutorUtility {
                 }
             });
         }
-    }
-
-    /**
-     * append thread name with url address
-     * 
-     * @return new url with updated thread name
-     */
-    public static URL setThreadName(URL url, String defaultName) {
-        String name = url.getParameter(Constants.THREAD_NAME_KEY, defaultName);
-        name = new StringBuilder(32).append(name).append("-").append(url.getAddress()).toString();
-        url = url.addParameter(Constants.THREAD_NAME_KEY, name);
-        return url;
     }
 }

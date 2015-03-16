@@ -20,16 +20,29 @@ import org.chinasb.common.threadpool.ExecutorFactory;
 public class LimitedExecutorFactory implements ExecutorFactory {
 
     @Override
+    public Executor getExecutor() {
+        String name = Constants.DEFAULT_THREAD_NAME;
+        int cores = Constants.DEFAULT_CORE_THREADS;
+        int threads = Constants.DEFAULT_THREADS;
+        int queues = Constants.DEFAULT_QUEUES;
+        return new ThreadPoolExecutor(cores, threads, Long.MAX_VALUE, TimeUnit.MILLISECONDS,
+                queues == 0 ? new SynchronousQueue<Runnable>()
+                        : (queues < 0 ? new LinkedBlockingQueue<Runnable>()
+                                : new LinkedBlockingQueue<Runnable>(queues)),
+                new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
+    }
+
+    @Override
     public Executor getExecutor(URL url) {
         String name = url.getParameter(Constants.THREAD_NAME_KEY, Constants.DEFAULT_THREAD_NAME);
         int cores = url.getParameter(Constants.CORE_THREADS_KEY, Constants.DEFAULT_CORE_THREADS);
         int threads = url.getParameter(Constants.THREADS_KEY, Constants.DEFAULT_THREADS);
         int queues = url.getParameter(Constants.QUEUES_KEY, Constants.DEFAULT_QUEUES);
-        return new ThreadPoolExecutor(cores, threads, Long.MAX_VALUE, TimeUnit.MILLISECONDS, 
-        		queues == 0 ? new SynchronousQueue<Runnable>() : 
-        			(queues < 0 ? new LinkedBlockingQueue<Runnable>() 
-        					: new LinkedBlockingQueue<Runnable>(queues)),
-        		new NamedThreadFactory(name, true), new AbortPolicyWithReport(name, url));
+        return new ThreadPoolExecutor(cores, threads, Long.MAX_VALUE, TimeUnit.MILLISECONDS,
+                queues == 0 ? new SynchronousQueue<Runnable>()
+                        : (queues < 0 ? new LinkedBlockingQueue<Runnable>()
+                                : new LinkedBlockingQueue<Runnable>(queues)),
+                new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
     }
 
 }

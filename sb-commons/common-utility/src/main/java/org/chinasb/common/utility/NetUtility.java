@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 import org.chinasb.common.LRUCache;
-import org.chinasb.common.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,29 +134,7 @@ public class NetUtility {
         InetAddress address = getLocalAddress();
         return address == null ? LOCALHOST : address.getHostAddress();
     }
-
-    public static String filterLocalHost(String host) {
-        if (host == null || host.length() == 0) {
-            return host;
-        }
-        if (host.contains("://")) {
-            URL u = URL.valueOf(host);
-            if (NetUtility.isInvalidLocalHost(u.getHost())) {
-                return u.setHost(NetUtility.getLocalHost()).toFullString();
-            }
-        } else if (host.contains(":")) {
-            int i = host.lastIndexOf(':');
-            if (NetUtility.isInvalidLocalHost(host.substring(0, i))) {
-                return NetUtility.getLocalHost() + host.substring(i);
-            }
-        } else {
-            if (NetUtility.isInvalidLocalHost(host)) {
-                return NetUtility.getLocalHost();
-            }
-        }
-        return host;
-    }
-
+    
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
     /**

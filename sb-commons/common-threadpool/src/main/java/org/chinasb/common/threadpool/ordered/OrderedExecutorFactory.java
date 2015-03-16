@@ -36,10 +36,14 @@ public final class OrderedExecutorFactory implements ExecutorFactory {
 	 * @return an ordered executor
 	 */
 	@Override
-    public Executor getExecutor(URL url) {
+    public Executor getExecutor() {
         return new OrderedExecutor(parent);
     }
 
+    @Override
+    public Executor getExecutor(URL url) {
+        throw new IllegalAccessError();
+    }
 	/**
 	 * An executor that always runs all tasks in order, using a delegate
 	 * executor to run the tasks.
