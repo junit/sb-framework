@@ -21,15 +21,7 @@ public class LimitedExecutorFactory implements ExecutorFactory {
 
     @Override
     public Executor getExecutor() {
-        String name = Constants.DEFAULT_THREAD_NAME;
-        int cores = Constants.DEFAULT_CORE_THREADS;
-        int threads = Constants.DEFAULT_THREADS;
-        int queues = Constants.DEFAULT_QUEUES;
-        return new ThreadPoolExecutor(cores, threads, Long.MAX_VALUE, TimeUnit.MILLISECONDS,
-                queues == 0 ? new SynchronousQueue<Runnable>()
-                        : (queues < 0 ? new LinkedBlockingQueue<Runnable>()
-                                : new LinkedBlockingQueue<Runnable>(queues)),
-                new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
+        throw new IllegalAccessError();
     }
 
     @Override

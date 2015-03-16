@@ -22,16 +22,7 @@ public class CachedThreadPoolExecutorFactory implements ExecutorFactory {
 
     @Override
     public Executor getExecutor() {
-        String name = Constants.DEFAULT_THREAD_NAME;
-        int cores = Constants.DEFAULT_CORE_THREADS;
-        int threads = Integer.MAX_VALUE;
-        int queues = Constants.DEFAULT_QUEUES;
-        int alive = Constants.DEFAULT_ALIVE;
-        return new ThreadPoolExecutor(cores, threads, alive, TimeUnit.MILLISECONDS,
-                queues == 0 ? new SynchronousQueue<Runnable>()
-                        : (queues < 0 ? new LinkedBlockingQueue<Runnable>()
-                                : new LinkedBlockingQueue<Runnable>(queues)),
-                new NamedThreadFactory(name, true), new AbortPolicyWithReport(name));
+        throw new IllegalAccessError();
     }
     
     @Override
