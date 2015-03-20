@@ -27,7 +27,6 @@
 		<module>common-basedb</module>
 		<module>common-db</module>
 		<module>common-disruptor</module>
-		<module>common-executor</module>
 		<module>common-jreloader</module>
 		<module>common-lock</module>
 		<module>common-rhino</module>
@@ -37,23 +36,24 @@
 	</modules>
 	<properties>
 		<!-- Build args -->
-		<skip_maven_deploy>true</skip_maven_deploy>
+		<skip_maven_deploy>false</skip_maven_deploy>
 		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
 
 		<!-- Common libs -->
 		<slf4j_version>1.7.6</slf4j_version>
 		<spring_version>4.1.5.RELEASE</spring_version>
-		<jackson_version>1.9.13</jackson_version>
-		<poi_version>3.10-FINAL</poi_version>
 		<guava_version>18.0</guava_version>
-		<hibernate_version>4.3.5.Final</hibernate_version>
-		<disruptor_version>3.3.2</disruptor_version>
+		<commons_beanutils_version>1.9.2</commons_beanutils_version>
 		<commons_digester3_version>3.2</commons_digester3_version>
 		<commons_io_version>2.4</commons_io_version>
 		<rhino_version>1.7R4</rhino_version>
+		<poi_version>3.10-FINAL</poi_version>
+		<disruptor_version>3.3.2</disruptor_version>
 		<netty_version>5.0.0.Alpha2</netty_version>
-		<commons_beanutils_version>1.9.2</commons_beanutils_version>
-
+		<blazeds_version>3.2.0.3978</blazeds_version>
+		<hibernate_version>4.3.5.Final</hibernate_version>
+		<jackson_version>1.9.13</jackson_version>
+		
 		<!-- for maven compiler plugin -->
 		<maven_compiler_plugin_version>3.1</maven_compiler_plugin_version>
 		<compiler_version>1.8</compiler_version>
@@ -84,29 +84,14 @@
 				<version>${spring_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.codehaus.jackson</groupId>
-				<artifactId>jackson-mapper-asl</artifactId>
-				<version>${jackson_version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.poi</groupId>
-				<artifactId>poi-ooxml</artifactId>
-				<version>${poi_version}</version>
-			</dependency>
-			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${guava_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-core</artifactId>
-				<version>${hibernate_version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.lmax</groupId>
-				<artifactId>disruptor</artifactId>
-				<version>${disruptor_version}</version>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>${commons_beanutils_version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -124,14 +109,39 @@
 				<version>${rhino_version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${poi_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.lmax</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${disruptor_version}</version>
+			</dependency>
+			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
 				<version>${netty_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>commons-beanutils</groupId>
-				<artifactId>commons-beanutils</artifactId>
-				<version>${commons_beanutils_version}</version>
+				<groupId>com.adobe.blazeds</groupId>
+				<artifactId>blazeds-common</artifactId>
+				<version>${blazeds_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.adobe.blazeds</groupId>
+				<artifactId>blazeds-core</artifactId>
+				<version>${blazeds_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.jackson</groupId>
+				<artifactId>jackson-mapper-asl</artifactId>
+				<version>${jackson_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate_version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

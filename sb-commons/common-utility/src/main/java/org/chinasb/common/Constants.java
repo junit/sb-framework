@@ -96,6 +96,8 @@ public class Constants {
     public static final String  LOCALHOST_VALUE                    = "127.0.0.1";
 
     public static final String  APPLICATION_KEY                    = "application";
+    
+    public static final String  APPLICATION_CONTEXT_KEY            = "applicationContext";
 
     public static final String  LOCAL_KEY                          = "local";
 

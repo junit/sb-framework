@@ -17,17 +17,21 @@
 	</properties>	
 	<dependencies>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>common-utility</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mozilla</groupId>
-			<artifactId>rhino</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mozilla</groupId>
+			<artifactId>rhino</artifactId>
 		</dependency>
 	</dependencies>
 </project>

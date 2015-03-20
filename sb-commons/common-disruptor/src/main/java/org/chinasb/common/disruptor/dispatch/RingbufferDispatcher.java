@@ -53,7 +53,7 @@ public class RingbufferDispatcher extends BaseLifecycleDispatcher {
 		}
 
 		NamedThreadFactory factory = new NamedThreadFactory(name);
-		if (null == executor) {
+		if (executor == null) {
 			this.executor = Executors.newFixedThreadPool(eventThreads, factory);
 		} else {
 			this.executor = executor;

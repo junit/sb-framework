@@ -17,6 +17,10 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>common-lock</artifactId>
 			<version>${project.version}</version>
@@ -40,12 +44,12 @@
 			<artifactId>spring-orm</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
 		</dependency>
 	</dependencies>
 </project>
