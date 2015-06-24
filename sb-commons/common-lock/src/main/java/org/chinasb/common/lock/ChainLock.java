@@ -14,7 +14,7 @@ public class ChainLock {
     private static final int TIMES = 3;
 
     /**
-     * 锁链初始化
+     * 初始化锁链
      * @param locks
      */
     public ChainLock(List<? extends Lock> locks) {

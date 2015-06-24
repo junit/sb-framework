@@ -12,10 +12,11 @@ import java.util.concurrent.locks.Lock;
  * @author zhujuan
  */
 public class LockUtils {
+    /** 对象锁持有者，用于避免重复的锁创建 */
     private final static ObjectLockHolder holder = new ObjectLockHolder();
 
     /**
-     * 获得一条锁链
+     * 获取对象实例的锁链
      * @param objects
      * @return
      */
@@ -25,7 +26,7 @@ public class LockUtils {
     }
 
     /**
-     * 加载对象锁，处理锁排序
+     * 加载对象实例的对象锁，并对所有对象锁处理排序
      * @param objects
      * @return
      */
@@ -38,35 +39,35 @@ public class LockUtils {
             }
         }
         Collections.sort(locks);
-
+        
         TreeSet<Integer> idx = new TreeSet<Integer>();
         Integer start = null;
         for (int i = 0; i < locks.size(); ++i) {
             if (start == null) {
-                start = Integer.valueOf(i);
+                start = i;
             } else {
-                ObjectLock lock1 = (ObjectLock) locks.get(start.intValue());
-                ObjectLock lock2 = (ObjectLock) locks.get(i);
+                ObjectLock lock1 = locks.get(start.intValue());
+                ObjectLock lock2 = locks.get(i);
                 if (lock1.isTie(lock2)) {
                     idx.add(start);
                 } else {
-                    start = Integer.valueOf(i);
+                    start = i;
                 }
             }
         }
         if (idx.isEmpty()) {
             return locks;
         }
-
-        List<Lock> newsLocks = new ArrayList<Lock>(locks.size() + idx.size());
-        newsLocks.addAll(locks);
+        
+        List<Lock> newLocks = new ArrayList<Lock>(locks.size() + idx.size());
+        newLocks.addAll(locks);
         Iterator<Integer> it = idx.descendingIterator();
         while (it.hasNext()) {
             Integer i = (Integer) it.next();
-            ObjectLock lock = (ObjectLock) locks.get(i.intValue());
+            ObjectLock lock = locks.get(i.intValue());
             Lock tieLock = holder.getTieLock(lock.getClz());
-            newsLocks.add(i.intValue(), tieLock);
+            newLocks.add(i.intValue(), tieLock);
         }
-        return newsLocks;
+        return newLocks;
     }
 }
