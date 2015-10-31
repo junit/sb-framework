@@ -17,12 +17,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
+import org.chinasb.common.Constants;
 import org.chinasb.common.NamedThreadFactory;
 import org.chinasb.common.db.dao.CommonDao;
 import org.chinasb.common.db.executor.DbCallback;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.BaseModel;
 import org.chinasb.common.utility.CollectionUtility;
+import org.chinasb.common.utility.ThreadPoolUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,24 +35,28 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Sets;
 
 /**
- * 数据持久化服务
+ * 数据库持久化服务
  * @author zhujuan
  */
 @Service
 public class DbServiceImpl implements DbService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DbServiceImpl.class);
     /**
-     * 数据持久化任务线程池
+     * 线程池
      */
     private static ExecutorService DB_POOL_SERVICE;
     /**
-     * 数据持久化任务队列
+     * 任务队列
      */
     private static final LinkedBlockingQueue<Runnable> DB_SAVER_QUEUE = new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE);
     /**
-     * 实体对象持久化集合
+     * 实体集合
      */
     private static final ConcurrentMap<Class<?>, Set<BaseModel<?>>> DB_OBJECT_MAP = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>(100);
+    /**
+     * 允许尝试提交次数
+     */
+    private static final int MAX_RETRY_COUNT = 5;
     
     /**
      * 线程池维护线程的最少数量
@@ -86,43 +92,36 @@ public class DbServiceImpl implements DbService {
     private final ReentrantLock takeLock;
     private final Condition notEmpty;
     /**
-     * 数据持久化任务队列处理
+     * 实体队列持久化处理任务
      */
     public final Runnable CUSTOMER_TASK;
     /**
-     * 实体对象持久化集合周期性任务提交
+     * 周期性处理提交实体任务
      */
     public final Runnable HANDLER_CACHED_OBJ_TASK;
-    /**
-     * 最大重试次数
-     */
-    private static final int MAX_RETRY_COUNT = 5;
 
-    /**
-     * 构造器
-     */
     public DbServiceImpl() {
         dbPoolSize = Integer.valueOf(DEFAULT_DB_THREADS);
         dbPoolMaxSize = Integer.valueOf(DEFAULT_DB_THREADS * 2);
-        keepAliveTime = Integer.valueOf(600);
-        entityBlockTime = Integer.valueOf(60000);
+        keepAliveTime = Integer.valueOf(Constants.ONE_MINUTE_SECOND * 10);
+        entityBlockTime = Integer.valueOf(Constants.ONE_MINUTE_MILLISECOND);
         takeLock = new ReentrantLock();
         notEmpty = takeLock.newCondition();
         CUSTOMER_TASK = new Runnable() {
             public void run() {
                 try {
                     for (;;) {
-                        Runnable task = (Runnable) DbServiceImpl.DB_SAVER_QUEUE.take();
+                        Runnable task = DB_SAVER_QUEUE.take();
                         if (task != null) {
-                            if (DbServiceImpl.LOGGER.isDebugEnabled()) {
-                                DbServiceImpl.LOGGER.debug("submit task.. QUEUE_SIZE:[{}] ",
-                                        Integer.valueOf(DbServiceImpl.DB_SAVER_QUEUE.size()));
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("submit task.. QUEUE_SIZE:[{}] ",
+                                        Integer.valueOf(DB_SAVER_QUEUE.size()));
                             }
-                            DbServiceImpl.DB_POOL_SERVICE.submit(task);
+                            DB_POOL_SERVICE.submit(task);
                         }
                     }
                 } catch (Exception ex) {
-                    DbServiceImpl.LOGGER.error("Error: {}", ex);
+                    LOGGER.error("Error: {}", ex);
                 }
             }
         };
@@ -138,10 +137,10 @@ public class DbServiceImpl implements DbService {
                                 takeLock.unlock();
                             }
                         }
-                        DbServiceImpl.this.submitCachedDbObject();
+                        submitCachedDbObject();
                     }
                 } catch (Exception ex) {
-                    DbServiceImpl.LOGGER.error("Error: " + ex.getMessage());
+                    LOGGER.error("Error: " + ex.getMessage());
                 }
             }
         };
@@ -165,15 +164,13 @@ public class DbServiceImpl implements DbService {
         thread.start();
 
         Thread pollCachedObjThread = factory.newThread(HANDLER_CACHED_OBJ_TASK);
-        pollCachedObjThread.setDaemon(true);
         pollCachedObjThread.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHookRunnable()));
     }
     
     /**
-     * 数据持久化服务停止
-     * @author zhujuan
+     * 服务停止
      */
     private class ShutdownHookRunnable implements Runnable {
         private ShutdownHookRunnable() {}
@@ -185,30 +182,30 @@ public class DbServiceImpl implements DbService {
     
 
     /**
-     * 创建实体对象缓存持久化任务
-     * @param callback 回调
-     * @param entityCache 实体对象缓存数据
+     * 创建实体缓存持久化任务
+     * @param callback
+     * @param entityCache
      * @return
      */
     private Runnable createTask(final DbCallback callback, final EntityCache entityCache) {
         return new Runnable() {
             public void run() {
-                DbServiceImpl.this.handleTask(callback, entityCache, false);
+                handleTask(callback, entityCache, false);
             }
         };
     }
     
     /**
-     * 提交实体对象缓存持久化任务
-     * @param callback 回调参数
-     * @param entityCache 实体缓存
+     * 提交实体缓存持久化任务
+     * @param callback
+     * @param entityCache
      */
     private void add2Queue(DbCallback callback, EntityCache entityCache) {
         DB_SAVER_QUEUE.add(createTask(null, entityCache));
     }
     
     /**
-     * 实体对象缓存持久化任务处理
+     * 处理实体缓存持久化任务
      * @param callback 回调
      * @param entityCache 实体对象缓存数据
      * @param removeFromSubmitCache
@@ -243,9 +240,12 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 实体对象持久化集合异步处理
+     * 提交实体持久化任务异步处理
      */
     private final void submitCachedDbObject() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("submitCachedDbObject [size[{}]]", DB_OBJECT_MAP.size());
+        }
         if (DB_OBJECT_MAP.isEmpty()) {
             return;
         }
@@ -265,7 +265,7 @@ public class DbServiceImpl implements DbService {
     }
 
     /**
-     * 实体对象持久化集合实时处理
+     * 提交实体持久化任务实时处理
      */
     private final void updateIntimeCachedDbObject() {
         if (DB_OBJECT_MAP.isEmpty()) {
@@ -293,8 +293,8 @@ public class DbServiceImpl implements DbService {
     }
     
     /**
-     * 增加实体对象到持久化集合
-     * @param entities 实体对象集合
+     * 添加实体到持久化集合
+     * @param entities
      */
     private void put2ObjectMap(Collection<BaseModel<?>> entities) {
         for (BaseModel<?> e : entities) {
@@ -303,8 +303,8 @@ public class DbServiceImpl implements DbService {
     }
 
     /**
-     * 增加实体对象到持久化集合
-     * @param entity 实体对象
+     * 添加实体到持久化集合
+     * @param entity
      */
     private void put2ObjectMap(BaseModel<?> entity) {
         Class<?> clazz = entity.getClass();
@@ -318,6 +318,7 @@ public class DbServiceImpl implements DbService {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void submitUpdate2Queue(T... entities) {
         if (entities.length <= 0) {
             return;
@@ -331,6 +332,7 @@ public class DbServiceImpl implements DbService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void updateEntityIntime(T... entities) {
         if (entities.length > 0) {
             handleTask(null, new EntityCache(entities), true);
@@ -338,6 +340,7 @@ public class DbServiceImpl implements DbService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void updateEntityIntime(DbCallback callback, T... entities) {
         handleTask(callback, new EntityCache(entities), true);
     }
@@ -376,34 +379,27 @@ public class DbServiceImpl implements DbService {
                 LOGGER.error("{}", e);
             }
             if (DB_SAVER_QUEUE.isEmpty()) {
-                try {
-                    if (!DB_POOL_SERVICE.isShutdown()) {
-                        DB_POOL_SERVICE.shutdown();
-                        DB_POOL_SERVICE.awaitTermination(3000L, TimeUnit.SECONDS);
-                        LOGGER.error("NO ERROR : db service shutdown!");
-                    }
-                } catch (InterruptedException e) {
-                    LOGGER.error("{}", e);
-                }
+                ThreadPoolUtils.shutdownGraceful(DB_POOL_SERVICE,
+                        Constants.ONE_MINUTE_MILLISECOND * 5);
             }
         }
     }
     
     /**
-     * 实体对象缓存
+     * 实体缓存
      */
     public static class EntityCache {
         /**
-         * 实体对象集合
+         * 实体集合
          */
         private Collection<BaseModel<?>> entities;
         /**
-         * 重试次数
+         * 尝试次数
          */
         private int retryCount;
 
         /**
-         * 获得实体对象集合
+         * 获取实体集合
          * @return
          */
         public Collection<BaseModel<?>> getEntities() {
@@ -411,7 +407,7 @@ public class DbServiceImpl implements DbService {
         }
 
         /**
-         * 获得重试次数
+         * 获取尝试次数
          * @return
          */
         public int getRetryCount() {
@@ -419,20 +415,21 @@ public class DbServiceImpl implements DbService {
         }
 
         public EntityCache(Object... entities) {
-            this.entities = DbServiceImpl.getBaseModelList(entities);
+            this.entities = getBaseModelList(entities);
         }
 
         public EntityCache(Collection<Object> entities) {
-            this.entities = DbServiceImpl.getBaseModelList(new Object[] {entities});
+            this.entities = getBaseModelList(new Object[] {entities});
         }
     }
     
 
     /**
-     * 获得可持久化的实体对象集合
+     * 获取可持久化的实体集合
      * @param entities 
      * @return
      */
+    @SuppressWarnings("unchecked")
     private static Collection<BaseModel<?>> getBaseModelList(Object... entities) {
         List<BaseModel<?>> baseModes = new LinkedList<BaseModel<?>>();
         for (Object entity : entities) {

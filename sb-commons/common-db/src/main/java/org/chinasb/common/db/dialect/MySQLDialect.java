@@ -3,16 +3,18 @@ package org.chinasb.common.db.dialect;
 import java.sql.Types;
 
 import org.hibernate.dialect.MySQL5InnoDBDialect;
+import org.hibernate.type.BinaryType;
 import org.hibernate.type.StringType;
 
 /**
- * MySQL方言
+ * 注册自定义类型
  * @author zhujuan
+ *
  */
 public class MySQLDialect extends MySQL5InnoDBDialect {
     public MySQLDialect() {
-        super.registerHibernateType(Types.LONGNVARCHAR, StringType.INSTANCE.getName());
-        super.registerHibernateType(Types.LONGVARCHAR, StringType.INSTANCE.getName());
-        super.registerHibernateType(Types.LONGVARBINARY, StringType.INSTANCE.getName());
+        registerHibernateType(Types.LONGNVARCHAR, StringType.INSTANCE.getName());
+        registerHibernateType(Types.LONGVARCHAR, StringType.INSTANCE.getName());
+        registerHibernateType(Types.LONGVARBINARY, BinaryType.INSTANCE.getName());
     }
 }

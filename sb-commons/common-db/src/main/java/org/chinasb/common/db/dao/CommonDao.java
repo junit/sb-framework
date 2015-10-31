@@ -6,69 +6,71 @@ import java.util.Collection;
 import org.hibernate.criterion.DetachedCriteria;
 
 /**
- * 数据库通用组件
+ * 通用DAO
  * @author zhujuan
  */
 public interface CommonDao {
     /**
-     * 获得实体对象
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
-     * @return
+     * 获取实体
+     * @param id 
+     * @param entityClazz
+     * @return {@link T}
      */
-    public <T> T get(Serializable id, Class<T> entityClazz);
+    <T> T get(Serializable id, Class<T> entityClazz);
     
     /**
-     * 保存实体对象
-     * @param entities 实体对象
+     * 保存实体
+     * @param entities
      */
-    public <T> void save(T... entities);
+    @SuppressWarnings("unchecked")  
+    <T> void save(T... entities);
 
     /**
-     * 更新实体对象
-     * @param entities 实体对象
+     * 更新实体
+     * @param entities
      */
-    public <T> void update(T... entities);
+    @SuppressWarnings("unchecked")  
+    <T> void update(T... entities);
 
     /**
-     * 更新实体对象集合
-     * @param entities 实体对象集合
+     * 更新实体集合
+     * @param entities
      */
-    public <T> void update(Collection<T> entities);
+    <T> void update(Collection<T> entities);
 
     /**
-     * 删除实体对象
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
+     * 删除实体
+     * @param id
+     * @param entityClazz
      */
-    public <T> void delete(Serializable id, Class<T> entityClazz);
+    <T> void delete(Serializable id, Class<T> entityClazz);
 
     /**
      * 离线查询
      * @param detachedCriteria
-     * @return
+     * @return {@link T}
      */
-    public <T> T execute(DetachedCriteria detachedCriteria);
+    <T> T execute(DetachedCriteria detachedCriteria);
 
     /**
-     * NativeSQL执行
+     * 原生SQL执行
      * @param sql
-     * @return
+     * @return {@link T}
      */
-    public int execute(String sql);
+    int execute(String sql);
     
     /**
-     * NativeSQL查询
+     * 原生SQL查询
      * @param sql
-     * @return
+     * @return {@link T}
      */
-    public <T> T query(String sql);
+    <T> T query(String sql);
     
     /**
-     * NativeSQL查询
+     * 原生SQL查询
      * @param sql
      * @param entityClazz
-     * @return
+     * @return {@link T}
      */
-    public <T> T query(String sql, Class<T> entityClazz);
+    <T> T query(String sql, Class<T> entityClazz);
 }

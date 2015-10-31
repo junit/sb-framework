@@ -19,11 +19,12 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.Strings;
 
 /**
- * 数据库通用组件实现
+ * 通用DAO
  * @author zhujuan
  */
 @Service
 public class CommonDaoImpl implements CommonDao {
+
     protected HibernateTemplate hibernateTemplate;
 
     @Autowired
@@ -35,9 +36,7 @@ public class CommonDaoImpl implements CommonDao {
     }
 
     public final SessionFactory getSessionFactory() {
-        return ((this.hibernateTemplate != null)
-                ? this.hibernateTemplate.getSessionFactory()
-                : null);
+        return hibernateTemplate != null ? hibernateTemplate.getSessionFactory() : null;
     }
     
     protected final Session getSession() throws DataAccessResourceFailureException,
@@ -55,6 +54,7 @@ public class CommonDaoImpl implements CommonDao {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void save(T... entities) {
         for (T entity : entities) {
             hibernateTemplate.save(entity);
@@ -62,6 +62,7 @@ public class CommonDaoImpl implements CommonDao {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> void update(T... entities) {
         for (T entity : entities) {
             hibernateTemplate.update(entity);
@@ -90,6 +91,7 @@ public class CommonDaoImpl implements CommonDao {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T execute(DetachedCriteria detachedCriteria) {
         if (detachedCriteria != null) {
             Criteria criteria = detachedCriteria.getExecutableCriteria(getSession());
@@ -108,6 +110,7 @@ public class CommonDaoImpl implements CommonDao {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T query(String sql) {
         if (!Strings.isNullOrEmpty(sql)) {
             SQLQuery sqlQuery = getSession().createSQLQuery(sql);
@@ -117,6 +120,7 @@ public class CommonDaoImpl implements CommonDao {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T query(String sql, Class<T> entityClazz) {
         if (!Strings.isNullOrEmpty(sql)) {
             SQLQuery sqlQuery = getSession().createSQLQuery(sql);

@@ -1,140 +1,140 @@
 package org.chinasb.common.db.cache;
 
 /**
- * 缓存管理服务
+ * 缓存服务接口
  * @author zhujuan
  */
 public interface CachedService {
     /**
-     * 增加实体对象到缓存
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加实体缓存
+     * @param key
+     * @param value
      * @return
      */
-    public Object put2EntityCache(String key, Object object);
+    Object put2EntityCache(String key, Object value);
 
     /**
-     * 增加实体对象到缓存
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加实体缓存
+     * @param key
+     * @param value
      * @param timeToLive 存活时间
      * @return
      */
-    public Object put2EntityCache(String key, Object object, long timeToLive);
+    Object put2EntityCache(String key, Object value, long timeToLive);
 
     /**
-     * 获取缓存中的实体对象
-     * @param key 主键
+     * 获取实体缓存
+     * @param key
      * @return
      */
-    public Object getFromEntityCache(String key);
+    Object getFromEntityCache(String key);
 
     /**
-     * 移除缓存中的实体对象
-     * @param key 主键
+     * 移除实体缓存
+     * @param key
      */
-    public void removeFromEntityCache(String key);
+    void removeFromEntityCache(String key);
 
     /**
-     * 增加对象到通用缓存（覆盖模式）
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加通用缓存（覆盖模式）
+     * @param key
+     * @param value
      */
-    public void put2CommonCache(String key, Object object);
+    void put2CommonCache(String key, Object value);
 
     /**
-     * 增加对象到通用缓存（覆盖模式）
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加通用缓存（覆盖模式）
+     * @param key
+     * @param value
      * @param timeToLive 存活时间
      */
-    public void put2CommonCache(String key, Object object, long timeToLive);
+    void put2CommonCache(String key, Object value, long timeToLive);
     
     /**
-     * 增加对象到通用公共缓存（put-if-absent模式）
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加通用缓存（put-if-absent模式）
+     * @param key
+     * @param value
      * @return
      */
-    public Object put2CommonCacheIfAbsent(String key, Object object);
+    Object put2CommonCacheIfAbsent(String key, Object value);
 
     /**
-     * 增加对象到通用缓存（put-if-absent模式）
-     * @param key 主键
-     * @param object 缓存对象
+     * 添加通用缓存（put-if-absent模式）
+     * @param key
+     * @param value
      * @param timeToLive 存活时间
      * @return
      */
-    public Object put2CommonCacheIfAbsent(String key, Object object, long timeToLive);
+    Object put2CommonCacheIfAbsent(String key, Object value, long timeToLive);
 
     /**
-     * 增加对象到通用缓存（覆盖模式）
+     * 添加通用缓存（覆盖模式）
      * @param hashKey
      * @param subKey
-     * @param object
+     * @param value
      */
-    public void put2CommonHashCache(String hashKey, String subKey, Object object);
+    void put2CommonHashCache(String hashKey, String subKey, Object value);
 
     /**
-     * 增加对象到通用缓存（覆盖模式）
+     * 添加通用缓存（覆盖模式）
      * @param hashKey
      * @param subKey
-     * @param object
-     * @param timeToLive
+     * @param value
+     * @param timeToLive 存活时间
      */
-    public void put2CommonHashCache(String hashKey, String subKey, Object object, long timeToLive);
+    void put2CommonHashCache(String hashKey, String subKey, Object value, long timeToLive);
 
     /**
-     * 增加对象到通用缓存（put-if-absent模式）
+     * 添加通用缓存（put-if-absent模式）
      * @param hashKey
      * @param subKey
-     * @param object
+     * @param value
      * @return
      */
-    public Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object object);
+    Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object value);
 
     /**
-     * 增加对象到通用缓存（put-if-absent模式）
+     * 添加通用缓存（put-if-absent模式）
      * @param hashKey
      * @param subKey
-     * @param object
-     * @param timeToLive
+     * @param value
+     * @param timeToLive 存活时间
      * @return
      */
-    public Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object object,
+    Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object value,
             long timeToLive);
 
     /**
-     * 获得通用缓存中的对象
-     * @param key 主键
+     * 获取通用缓存
+     * @param key
      * @return
      */
-    public Object getFromCommonCache(String key);
+    Object getFromCommonCache(String key);
 
     /**
-     * 获得通用缓存中的对象
-     * @param hashKey 主键
-     * @param subKey 子键
+     * 获取通用缓存
+     * @param hashKey
+     * @param subKey
      * @return
      */
-    public Object getFromCommonHashCache(String hashKey, String subKey);
+    Object getFromCommonHashCache(String hashKey, String subKey);
 
     /**
-     * 移除通用缓存中的对象
-     * @param key 主键
+     * 移除通用缓存
+     * @param key
      */
-    public void removeFromCommonCache(String key);
+    void removeFromCommonCache(String key);
 
     /**
-     * 移除通用缓存中的对象
-     * @param hashKey 主键
-     * @param subKey 子键
+     * 移除通用缓存
+     * @param hashKey
+     * @param subKey
      */
-    public void removeFromCommonHashCache(String hashKey, String subKey);
+    void removeFromCommonHashCache(String hashKey, String subKey);
 
     /**
      * 清除过期缓存
-     * @param clearInValidCommonCache 清除通用缓存标志{true：清除, false:忽略}
+     * @param clearInValidCommonCache 是否清除通用缓存标志{true：清除, false:忽略}
      */
-    public void clearValidateCacheObject(boolean clearInValidCommonCache);
+    void clearInValidateCacheObject(boolean clearInValidCommonCache);
 }

@@ -2,18 +2,17 @@ package org.chinasb.common.db.model;
 
 import org.chinasb.common.Constants;
 
-
 /**
  * 缓存对象
  * @author zhujuan
  */
 public class CacheObject {
     /**
-     * 缓存实体
+     * 缓存值
      */
-    private Object entity;
+    private Object value;
     /**
-     * 生存时间
+     * 存活时间
      */
     private long ttl = 0L;
     /**
@@ -26,63 +25,62 @@ public class CacheObject {
     private long expireTime = createTime + ttl;
 
     /**
-     * 返回缓存对象
-     * @param entity 缓存实体
-     * @return
+     * 将普通对象转换为缓存对象
+     * @param value 普通对象
+     * @return {@link CacheObject}
      */
-    public static CacheObject valueOf(Object entity) {
-        CacheObject entityCacheObject = new CacheObject();
-        entityCacheObject.entity = entity;
-        entityCacheObject.ttl = Constants.ONE_DAY_MILLISECOND;
-        entityCacheObject.createTime = System.currentTimeMillis();
-        entityCacheObject.expireTime = (entityCacheObject.createTime + entityCacheObject.ttl);
-        return entityCacheObject;
+    public static CacheObject valueOf(Object value) {
+        CacheObject cacheObject = new CacheObject();
+        cacheObject.value = value;
+        cacheObject.ttl = Constants.ONE_DAY_MILLISECOND;
+        cacheObject.createTime = System.currentTimeMillis();
+        cacheObject.expireTime = (cacheObject.createTime + cacheObject.ttl);
+        return cacheObject;
     }
     
     /**
-     * 返回缓存对象
-     * @param entity 缓存实体
+     * 将普通对象转换为缓存对象
+     * @param value 普通对象
      * @param timeToLive 存活时间
-     * @return
+     * @return {@link CacheObject}
      */
-    public static CacheObject valueOf(Object entity, long timeToLive) {
-        CacheObject entityCacheObject = new CacheObject();
-        entityCacheObject.entity = entity;
-        entityCacheObject.ttl = timeToLive;
-        entityCacheObject.createTime = System.currentTimeMillis();
-        entityCacheObject.expireTime = (entityCacheObject.createTime + entityCacheObject.ttl);
-        return entityCacheObject;
+    public static CacheObject valueOf(Object value, long timeToLive) {
+        CacheObject cacheObject = new CacheObject();
+        cacheObject.value = value;
+        cacheObject.ttl = timeToLive;
+        cacheObject.createTime = System.currentTimeMillis();
+        cacheObject.expireTime = (cacheObject.createTime + cacheObject.ttl);
+        return cacheObject;
     }
 
     /**
-     * 缓存过期有效性检验
-     * @return false: 过期; true: 未过期
+     * 检查缓存对象的有效性
+     * @return true: 有效; false: 无效
      */
     public boolean isValidate() {
         return expireTime >= System.currentTimeMillis();
     }
 
     /**
-     * 延长缓存的过期时间
+     * 延长缓存对象的过期时间
      * @param addExpireTime
-     * @param maxExpireTime
      */
-    public void increaseExpireTime(int addExpireTime, int maxExpireTime) {
-        if (expireTime < maxExpireTime + System.currentTimeMillis()) {
-            expireTime += maxExpireTime;
+    public void increaseExpireTime(int addExpireTime) {
+        if (expireTime < (addExpireTime + System.currentTimeMillis())) {
+            expireTime += addExpireTime;
         }
     }
 
     /**
-     * 获得缓存实体
+     * 获取缓存的实体
      * @return
      */
-    public Object getEntity() {
-        return entity;
+    public Object getValue() {
+        return value;
     }
 
     /**
-     * 获得存活时间
+     * 获取缓存的存活时间
      * @return
      */
     public long getTtl() {
@@ -90,7 +88,7 @@ public class CacheObject {
     }
 
     /**
-     * 获得创建时间
+     * 获取缓存的创建时间
      * @return
      */
     public long getCreateTime() {
@@ -98,7 +96,7 @@ public class CacheObject {
     }
 
     /**
-     * 获得过期时间
+     * 获取缓存的过期时间
      * @return
      */
     public long getExpireTime() {

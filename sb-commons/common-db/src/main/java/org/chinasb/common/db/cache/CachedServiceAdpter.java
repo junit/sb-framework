@@ -17,7 +17,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * 实体对象缓存适配器
+ * 缓存服务适配器
  * @author zhujuan
  */
 public abstract class CachedServiceAdpter {
@@ -29,7 +29,7 @@ public abstract class CachedServiceAdpter {
     @Autowired
     protected CachedService cachedService;
     /**
-     * 实体对象锁缓存
+     * 类对象锁缓存集合
      */
     private static final LoadingCache<String, Object> OBJECT_MAPS = CacheBuilder.newBuilder()
             .maximumSize(1000).build(new CacheLoader<String, Object>() {
@@ -40,9 +40,9 @@ public abstract class CachedServiceAdpter {
             });
     
     /**
-     * 获得实体对象主健
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
+     * 获取实体键名
+     * @param id
+     * @param entityClazz
      * @return
      */
     protected <PK extends Comparable<PK> & Serializable> String getEntityIdKey(PK id,
@@ -51,9 +51,9 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 获得实体对象
-     * @param id 唯一标识
-     * @param clazz 实体类对象
+     * 获取实体
+     * @param id
+     * @param clazz
      * @return
      */
     public <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> T get(PK id,
@@ -62,12 +62,13 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 获得实体对象
-     * @param id 唯一标识
-     * @param clazz 实体类对象
-     * @param fromCache true:直接缓存获得， false:刷新缓存获得
+     * 获取实体
+     * @param id
+     * @param clazz
+     * @param fromCache true:获取缓存中的数据， false:获取DB中的数据
      * @return
      */
+    @SuppressWarnings("unchecked")
     protected <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> T get(PK id,
             Class<T> clazz, boolean fromCache) {
         if (id == null) {
@@ -90,7 +91,7 @@ public abstract class CachedServiceAdpter {
                 if (entity != null) {
                     return entity;
                 }
-                entity = (T) getEntityFromDB((Serializable) id, clazz);
+                entity = (T) getEntityFromDB(id, clazz);
                 return (T) cachedService.put2EntityCache(key, entity);
             }
         } catch (Exception e) {
@@ -101,9 +102,9 @@ public abstract class CachedServiceAdpter {
 
 
     /**
-     * 获得实体对象集合
-     * @param idList 唯一标识集合
-     * @param entityClazz 实体类对象
+     * 获取实体集合
+     * @param idList
+     * @param entityClazz
      * @return
      */
     protected <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> List<T> getEntityFromIdList(
@@ -122,21 +123,21 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 获得缓存中的实体对象
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
+     * 获取实体缓存
+     * @param id
+     * @param entityClazz
      * @return
      */
+    @SuppressWarnings("unchecked")
     protected <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> T getEntityFromCache(
             PK id, Class<T> entityClazz) {
-        String key = getEntityIdKey(id, entityClazz);
-        return (T) cachedService.getFromEntityCache(key);
+        return (T) cachedService.getFromEntityCache(getEntityIdKey(id, entityClazz));
     }
 
     /**
-     * 获得数据库中的实体对象
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
+     * 获取实体
+     * @param id
+     * @param entityClazz
      * @return
      */
     protected <T, PK extends Serializable> T getEntityFromDB(PK id, Class<T> entityClazz) {
@@ -144,9 +145,9 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 移除缓存中的实体对象
-     * @param id 唯一标识
-     * @param entityClazz 实体类对象
+     * 移除实体缓存
+     * @param id
+     * @param entityClazz
      */
     public <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> void removeEntityFromCache(
             PK id, Class<T> entityClazz) {
@@ -154,9 +155,9 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 移除缓存中的实体对象
-     * @param idList 唯一标识集合
-     * @param entityClazz 实体类对象
+     * 移除实体缓存
+     * @param idList
+     * @param entityClazz
      */
     public <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> void removeEntityFromCache(
             Collection<PK> idList, Class<T> entityClazz) {
@@ -168,10 +169,11 @@ public abstract class CachedServiceAdpter {
     }
     
     /**
-     * 增加实体对象到缓存
-     * @param entiys 实体
+     * 添加实体缓存
+     * @param entiys
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> List<T> put2EntityCache(
             T... entiys) {
         if ((entiys != null) && (entiys.length > 0)) {
@@ -186,10 +188,11 @@ public abstract class CachedServiceAdpter {
     }
 
     /**
-     * 增加实体对象到缓存
-     * @param entiys 实体集合
+     * 添加实体缓存
+     * @param entiys
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> List<T> put2EntityCache(
             Collection<T> entiys) {
         if ((entiys != null) && (entiys.size() > 0)) {
@@ -206,9 +209,9 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 清除过期缓存
-     * @param clearInValidCommonCache 清除公共缓存标志{true：清除, false:忽略}
+     * @param clearInValidCommonCache 是否清除通用缓存标志{true：清除, false:忽略}
      */
-    protected void clearValidateCacheObject(boolean clearInValidCommonCache) {
-        cachedService.clearValidateCacheObject(clearInValidCommonCache);
+    protected void clearInValidateCacheObject(boolean clearInValidCommonCache) {
+        cachedService.clearInValidateCacheObject(clearInValidCommonCache);
     }
 }

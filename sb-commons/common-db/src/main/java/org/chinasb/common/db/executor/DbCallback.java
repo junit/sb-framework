@@ -1,9 +1,9 @@
 package org.chinasb.common.db.executor;
 
 /**
- * 数据处理回调
+ * 数据更新回调接口
  * @author zhujuan
  */
 public interface DbCallback {
-    public void doAfter();
+    void doAfter();
 }
