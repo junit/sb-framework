@@ -4,18 +4,18 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 /**
- * 资源读取
+ * 资源阅读器
  * @author zhujuan
  */
 public interface ResourceReader {
     /**
-     * 获得格式
+     * 获取资源格式
      * @return
      */
     public String getFormat();
 
     /**
-     * 读取资源
+     * 读取资源内容
      * @param paramInputStream
      * @param paramClass
      * @return

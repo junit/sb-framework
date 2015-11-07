@@ -1,12 +1,12 @@
 package org.chinasb.common.basedb;
 
 /**
- * 资源监听
+ * 资源监听器
  * @author zhujuan
  */
 public interface ResourceListener {
     /**
-     * 重载监听
+     * 基础数据重载
      */
     public void onBasedbReload();
 }

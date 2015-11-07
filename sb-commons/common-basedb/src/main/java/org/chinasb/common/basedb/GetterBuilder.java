@@ -19,7 +19,7 @@ public class GetterBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(GetterBuilder.class);
 
     /**
-     * 创建唯一标识取值器
+     * 创建ID取值器
      * @param clz
      * @return
      */

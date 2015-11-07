@@ -1,7 +1,7 @@
 package org.chinasb.common.basedb;
 
 /**
- * 初始化对象
+ * 对象初始化接口
  * @author zhujuan
  */
 public interface InitializeBean {

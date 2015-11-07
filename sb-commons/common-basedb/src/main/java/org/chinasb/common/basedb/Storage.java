@@ -5,14 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.chinasb.common.basedb.annotation.Resource;
 import org.slf4j.Logger;
@@ -24,49 +22,54 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 
 /**
- * 基础数据仓库
+ * 基础数据存储
  * @author zhujuan
  * @param <V>
  */
 public class Storage<V> {
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(Storage.class);
+    
+    private final ApplicationContext applicationContext;
     /**
-     * 基础数据的类对象
+     * 基础数据类对象
      */
-    private Class<V> clazz;
+    private final Class<V> clazz;
     /**
-     * 基础数据存放路径
+     * 资源路径
      */
-    private String location;
+    private final String resourceLocation;
     /**
-     * 资源读取器
+     * 资源位置
      */
-    private ResourceReader reader;
+    private final String location;
     /**
-     * 唯一标识取值器
+     * 资源阅读器
      */
-    private Getter identifier;
+    private final ResourceReader reader;
+    /**
+     * ID取值器
+     */
+    private final Getter identifier;
     /**
      * 索引访问器映射集合Map<索引名称,索引访问器>
      */
-    private Map<String, IndexBuilder.IndexVisitor> indexVisitors;
+    private final Map<String, IndexBuilder.IndexVisitor> indexVisitors;
     /**
-     * 基础数据映射集合Map<唯一标识, 基础数据>
+     * 基础数据映射集合Map<ID, 基础数据>
      */
-    private Map<Object, V> dataTable = new HashMap<Object, V>();
+    private final Map<Object, V> dataTable = new HashMap<Object, V>();
     /**
-     * 索引数据映射集合Map<索引字段值域的组合键名, 唯一标识>
+     * 索引映射集合Map<索引字段值域的组合名称, List<ID>>
      */
-    private Map<String, Object> indexTable = new HashMap<String, Object>();
+    private final Map<String, List<Object>> indexTable = new HashMap<String, List<Object>>();
     /**
-     * 唯一标识集合
+     * 基础数据ID列表
      */
-    private List<Object> idList = new CopyOnWriteArrayList<Object>();
-    private String resourceLocation = "basedb" + File.separator;
-    private ApplicationContext applicationContext;
+    private List<Object> idList = new ArrayList<Object>();
 
     /**
-     * 构造一个基础数据仓库
+     * 构建基础数据存储对象
      * @param clazz
      * @param resourceLocation
      * @param applicationContext
@@ -75,27 +78,18 @@ public class Storage<V> {
         this.applicationContext = applicationContext;
         this.resourceLocation = resourceLocation;
         this.clazz = clazz;
-        initialize(clazz);
-    }
-
-    /**
-     * 基础数据仓库初始化
-     * @param clazz
-     */
-    private void initialize(Class<V> clazz) {
-        this.clazz = clazz;
         Resource resource = (Resource) clazz.getAnnotation(Resource.class);
-        location = (resourceLocation + clazz.getSimpleName() + "." + resource.suffix());
+        this.location = (this.resourceLocation + clazz.getSimpleName() + "." + resource.suffix());
         ResourceReader reader =
-                (ResourceReader) applicationContext.getBean(resource.type() + "ResourceReader",
+                (ResourceReader) this.applicationContext.getBean(resource.type() + "ResourceReader",
                         ResourceReader.class);
         this.reader = reader;
         identifier = GetterBuilder.createIdGetter(clazz);
         indexVisitors = IndexBuilder.createIndexVisitors(clazz);
     }
-
+    
     /**
-     * 获得基础数据映射集合
+     * 获取基础数据映射集合
      * @return
      */
     public Map<Object, V> getDataTable() {
@@ -103,38 +97,46 @@ public class Storage<V> {
     }
 
     /**
-     * 获得索引数据映射集合
+     * 获取索引映射集合
      * @return
      */
-    public Map<String, Object> getIndexTable() {
+    public Map<String, List<Object>> getIndexTable() {
         return indexTable;
     }
 
     /**
-     * 获得索引数据集合
+     * 获取基础数据ID列表
+     * @return
+     */
+    public List<Object> getIdList() {
+        return Collections.unmodifiableList(idList);
+    }
+    
+    /**
+     * 通过索引获取基础数据列表
      * @param indexName 索引名称
      * @param indexValues 索引值
      * @return
      */
-    public List<V> getIndex(String indexName, Object... indexValues) {
-        List idList = getIndexIdList(indexName, indexValues);
+    public List<V> getByIndex(String indexName, Object... indexValues) {
+        List<Object> idList = getIndexIdList(indexName, indexValues);
         return list(idList);
     }
 
     /**
-     * 获得索引数据的唯一标识集合
+     * 获取索引ID列表
      * @param indexName 索引名称
      * @param indexValues 索引值
      * @return
      */
-    public List getIndexIdList(String indexName, Object... indexValues) {
+    public List<Object> getIndexIdList(String indexName, Object... indexValues) {
         String indexkey = getIndexKey(indexName, indexValues);
-        return (List) indexTable.get(indexkey);
+        return Collections.unmodifiableList(indexTable.get(indexkey));
     }
 
     /**
-     * 获得基础数据
-     * @param key 唯一标识
+     * 获取基础数据
+     * @param key ID
      * @return
      */
     public V get(Object key) {
@@ -142,11 +144,11 @@ public class Storage<V> {
     }
 
     /**
-     * 获得基础数据集合
-     * @param idList 唯一标识集合
+     * 获取基础数据列表
+     * @param idList ID列表
      * @return
      */
-    public List<V> list(List idList) {
+    public List<V> list(List<Object> idList) {
         List<V> resultList = new ArrayList<V>();
         if ((idList != null) && (!idList.isEmpty())) {
             for (Object id : idList) {
@@ -156,15 +158,15 @@ public class Storage<V> {
                 }
             }
         }
-        return resultList;
+        return Collections.unmodifiableList(resultList);
     }
 
     /**
-     * 获得全部基础数据集合
+     * 获取全部基础数据列表
      * @return
      */
-    public Collection<V> listAll() {
-        return new ArrayList<V>(dataTable.values());
+    public List<V> listAll() {
+        return Collections.unmodifiableList(new ArrayList<V>(dataTable.values()));
     }
 
     /**
@@ -189,7 +191,7 @@ public class Storage<V> {
 
             List<Object> idList_copy = new ArrayList<Object>();
             Map<Object, V> dataTable_copy = new HashMap<Object, V>();
-            Map<String, Object> indexTable_copy = new HashMap<String, Object>();
+            Map<String, List<Object>> indexTable_copy = new HashMap<String, List<Object>>();
             while (it.hasNext()) {
                 V obj = it.next();
                 if ((obj instanceof InitializeBean)) {
@@ -227,7 +229,7 @@ public class Storage<V> {
     }
 
     /**
-     * 获得索引字段值域的组合键名(类名&索引名称#索引值1^索引值2)
+     * 获取索引键值(类名&索引名称#索引值1^索引值2)
      * @param name 索引名称
      * @param value 索引值
      * @return
@@ -237,9 +239,9 @@ public class Storage<V> {
     }
 
     /**
-     * 增加基础数据到目标基础数据集合
+     * 添加基础数据
      * @param value 基础数据
-     * @param dataTable 目标基础数据集合
+     * @param dataTable 基础数据集合
      * @return
      */
     private V offer(V value, Map<Object, V> dataTable) {
@@ -249,11 +251,11 @@ public class Storage<V> {
     }
 
     /**
-     * 为基础数据建立索引并增加到目标索引数据集合
+     * 索引基础数据
      * @param value 基础数据
-     * @param indexTable 目标索引数据集合
+     * @param indexTable 索引集合
      */
-    private void index(V value, Map<String, Object> indexTable) {
+    private void index(V value, Map<String, List<Object>> indexTable) {
         for (IndexBuilder.IndexVisitor indexVisitor : indexVisitors.values()) {
             if (indexVisitor.indexable(value)) {
                 String indexKey = indexVisitor.getIndexKey(value);
@@ -263,15 +265,15 @@ public class Storage<V> {
     }
 
     /**
-     * 增加基础数据到目标索引数据集合
-     * @param indexKey 索引字段值域的组合键名
+     * 索引基础数据
+     * @param indexKey 索引字段值域的组合键值
      * @param value 基础数据
-     * @param indexTable 目标索引数据集合
+     * @param indexTable 索引集合
      */
-    private void addToIndexList(String indexKey, V value, Map<String, Object> indexTable) {
-        List idList = (List) indexTable.get(indexKey);
+    private void addToIndexList(String indexKey, V value, Map<String, List<Object>> indexTable) {
+        List<Object> idList = indexTable.get(indexKey);
         if (idList == null) {
-            idList = new ArrayList();
+            idList = new ArrayList<Object>();
             indexTable.put(indexKey, idList);
         }
         Object id = identifier.getValue(value);
@@ -279,16 +281,17 @@ public class Storage<V> {
     }
     
     /**
-     * 对唯一标识集合和索引数据集合排序
-     * @param idList
-     * @param indexTable
-     * @param dataTable
+     * 排序
+     * @param idList ID列表
+     * @param indexTable 索引集合
+     * @param dataTable 基础数据集合
      */
-    private void sort(List<Object> idList, Map<String, Object> indexTable,
+    private void sort(List<Object> idList, Map<String, List<Object>> indexTable,
             final Map<Object, V> dataTable) {
         Comparator<Object> comparator = null;
         if (Comparable.class.isAssignableFrom(clazz)) {
             comparator = new Comparator<Object>() {
+                @SuppressWarnings({"rawtypes", "unchecked"})
                 public int compare(Object o1, Object o2) {
                     Comparable entity1 = (Comparable) dataTable.get(o1);
                     Comparable entity2 = (Comparable) dataTable.get(o2);
@@ -297,6 +300,7 @@ public class Storage<V> {
             };
         } else {
             comparator = new Comparator<Object>() {
+                @SuppressWarnings({"rawtypes", "unchecked"})
                 public int compare(Object o1, Object o2) {
                     if (((o1 instanceof Comparable)) && ((o2 instanceof Comparable))) {
                         Comparable co1 = (Comparable) o1;
@@ -307,12 +311,9 @@ public class Storage<V> {
                 }
             };
         }
-        for (Object indexObj : indexTable.values()) {
-            if ((indexObj instanceof List)) {
-                List<?> indexedIdList = (List<?>) indexObj;
-                if ((indexedIdList != null) && (indexedIdList.size() > 1)) {
-                    Collections.sort(indexedIdList, comparator);
-                }
+        for (List<Object> indexedIdList : indexTable.values()) {
+            if ((indexedIdList != null) && (!indexedIdList.isEmpty())) {
+                Collections.sort(indexedIdList, comparator);
             }
         }
         Collections.sort(idList, comparator);

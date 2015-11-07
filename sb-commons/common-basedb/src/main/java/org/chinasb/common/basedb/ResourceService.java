@@ -1,76 +1,75 @@
 package org.chinasb.common.basedb;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
- * 基础数据管理
+ * 基础数据管理服务接口
  * @author zhujuan
  */
-public interface ResourceService {
+interface ResourceService {
     /**
-     * 通过唯一标识获得基础数据
-     * @param id 唯一标识
-     * @param clazz 基础数据的对象类
+     * 获取基础数据
+     * @param id ID
+     * @param clazz 基础数据类对象
      * @return
      */
-    public <T> T get(Object id, Class<T> clazz);
+    <T> T get(Object id, Class<T> clazz);
 
     /**
-     * 通过索引获得基础数据集合
+     * 通过索引获取基础数据列表
      * @param indexName 索引名称
-     * @param clazz 基础数据的对象类
+     * @param clazz 基础数据类对象
      * @param indexValues 索引值
      * @return
      */
-    public <T> List<T> listByIndex(String indexName, Class<T> clazz, Object... indexValues);
+    <T> List<T> listByIndex(String indexName, Class<T> clazz, Object... indexValues);
 
     /**
-     * 通过索引获得基础数据唯一标识集合
+     * 通过索引获取基础数据ID列表
      * @param indexName 索引名称
-     * @param clazz 基础数据的对象类
-     * @param pk 唯一标识的数据类型
+     * @param clazz 基础数据类对象
+     * @param pk 基础数据ID类对象
      * @param indexValues 索引值
      * @return
      */
-    public <T, PK> List<PK> listIdByIndex(String indexName, Class<T> clazz, Class<PK> pk,
+    <T, PK> List<PK> listIdByIndex(String indexName, Class<T> clazz, Class<PK> pk,
             Object... indexValues);
 
     /**
-     * 通过索引获得基础数据的第一条记录
+     * 通过索引获取基础数据的唯一记录
      * @param indexName 索引名称
-     * @param clazz 基础数据的对象类
+     * @param clazz 基础数据类对象
      * @param indexValues 索引值
      * @return
      */
-    public <T> T getByUnique(String indexName, Class<T> clazz, Object... indexValues);
+    <T> T getByUnique(String indexName, Class<T> clazz, Object... indexValues);
 
     /**
-     * 获得全部基础数据集合
-     * @param clazz 基础数据的对象类
+     * 获取全部基础数据列表
+     * @param clazz 基础数据类对象
      * @return
      */
-    public <T> Collection<T> listAll(Class<T> clazz);
+    <T> List<T> listAll(Class<T> clazz);
 
     /**
-     * 增加基础数据到索引数据集合
+     * 添加基础数据ID索引
      * @param indexName 索引名称
-     * @param id 唯一标识
-     * @param clazz 基础数据的对象类
+     * @param id 基础数据ID
+     * @param clazz 基础数据类对象
      */
-    public <T> void addToIndex(String indexName, Object id, Class<T> clazz);
+    <T> void addToIndex(String indexName, Object id, Class<T> clazz);
 
     /**
-     * 增加基础数据到索引数据集合
+     * 添加基础数据ID索引
      * @param indexName 索引名称
-     * @param id 唯一标识
-     * @param clazz 基础数据的对象类
+     * @param id 基础数据ID
+     * @param clazz 基础数据类对象
      * @param indexValues 索引值
      */
-    public <T> void addToIndex(String indexName, Object id, Class<T> clazz, Object... indexValues);
+    <T> void addToIndex(String indexName, Object id, Class<T> clazz, Object... indexValues);
 
     /**
      * 重新加载全部基础数据
      */
-    public void reloadAll();
+    void reloadAll();
 }

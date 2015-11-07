@@ -2,11 +2,13 @@ package org.chinasb.common.basedb;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 基础数据适配器
+ * 资源适配器
  * @author zhujuan
  */
 public abstract class ResourceAdapter implements ResourceListener {
@@ -20,9 +22,9 @@ public abstract class ResourceAdapter implements ResourceListener {
     }
 
     /**
-     * 获得基础数据集合
-     * @param clazz
-     * @param idList
+     * 获取基础数据列表
+     * @param clazz 基础数据类对象
+     * @param idList 基础数据ID列表
      * @return
      */
     protected <T> List<T> getFromIdList(Class<T> clazz, Collection<?> idList) {
@@ -34,13 +36,13 @@ public abstract class ResourceAdapter implements ResourceListener {
                     entityList.add(entity);
                 }
             }
-            return entityList;
+            return Collections.unmodifiableList(entityList);
         }
         return null;
     }
 
     /**
-     * 基础数据初始化
+     * 初始化
      */
     public abstract void initialize();
 }

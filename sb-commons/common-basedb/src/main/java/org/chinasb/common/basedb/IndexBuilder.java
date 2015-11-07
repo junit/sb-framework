@@ -23,7 +23,7 @@ public class IndexBuilder {
 
     /**
      * 创建索引访问器
-     * @param clazz
+     * @param clazz 类对象
      * @return
      */
     public static Map<String, IndexVisitor> createIndexVisitors(Class<?> clazz) {
@@ -89,7 +89,7 @@ public class IndexBuilder {
         }
 
         /**
-         * 获得索引访问器名称
+         * 获取索引访问器名称
          * @return
          */
         public String getName() {
@@ -97,7 +97,7 @@ public class IndexBuilder {
         }
 
         /**
-         * 获得索引字段集合
+         * 获取索引字段集合
          * @return
          */
         public List<Field> getFields() {
@@ -105,7 +105,7 @@ public class IndexBuilder {
         }
         
         /**
-         * 获得索引字段值域的组合键名(类名&索引名称#索引值1^索引值2)
+         * 获取索引字段值域的组合键值(类名&索引名称#索引值1^索引值2)
          * @param obj
          * @return
          */
@@ -135,6 +135,7 @@ public class IndexBuilder {
          * @param obj
          * @return
          */
+        @SuppressWarnings("unchecked")
         public boolean indexable(Object obj) {
             if (obj != null) {
                 if ((expressions != null) && (!expressions.isEmpty())) {

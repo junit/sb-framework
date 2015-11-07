@@ -3,6 +3,7 @@ package org.chinasb.common.basedb;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,7 +23,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * 基础数据管理
+ * 资源管理服务
  * @author zhujuan
  */
 @Component
@@ -31,22 +32,52 @@ public class ResourceServiceImpl
             ResourceService,
             ApplicationListener<ContextRefreshedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceServiceImpl.class);
-    private ConcurrentHashMap<Class, Storage> storages = new ConcurrentHashMap<Class, Storage>(50);
-    private List<ResourceListener> listeners = new ArrayList<ResourceListener>();
+    /**
+     * 刷新事件标志
+     */
+    private static final AtomicBoolean REFRESH_EVENT_SWITCH = new AtomicBoolean(false);
+    /**
+     * 数据存储集合
+     */
+    @SuppressWarnings("rawtypes")
+    private final ConcurrentHashMap<Class, Storage> storages = new ConcurrentHashMap<Class, Storage>(100);
+    /**
+     * 资源监听器列表
+     */
+    private final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
+    
+    /**
+     * 资源路径
+     */
     @Autowired(required = false)
     @Qualifier("basedb_location")
-    private String resourceLocation = "res_db" + File.separator;
+    private String resourceLocation;
+    
+    /**
+     * 是否处理Spring重载事件
+     */
+    @Autowired(required = false)
     @Qualifier("spring_refresh_event_reload")
-    private Boolean springRefreshEventReload = Boolean.valueOf(false);
+    private Boolean springRefreshEventReload;
+    
+    /**
+     * 资源包路径
+     */
     @Autowired(required = false)
     @Qualifier("basedb_package")
-    private String resourcePackage = "org.chinasb.**.basedb.model";
+    private String resourcePackage;
+    
     @Autowired
     private ApplicationContext applicationContext;
-    private static final AtomicBoolean REFRESH_EVENT_SWITCH = new AtomicBoolean(false);
-
+    
+    public ResourceServiceImpl() {
+        this.resourceLocation = "res_db" + File.separator;
+        this.springRefreshEventReload = Boolean.valueOf(false);
+        this.resourcePackage = "org.chinasb.**.basedb.model";
+    }
+    
     /**
-     * 基础数据加载
+     * 资源初始化
      */
     private void initialize() {
         registerListener();
@@ -88,7 +119,7 @@ public class ResourceServiceImpl
     }
 
     /**
-     * 注册监听
+     * 注册资源监听器
      */
     private void registerListener() {
         Map<String, ResourceListener> listenerMap =
@@ -101,9 +132,10 @@ public class ResourceServiceImpl
     }
 
     /**
-     * 初始化基础数据
+     * 基础数据初始化
      * @param clazz
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void initializeStorage(Class clazz) {
         Storage storage = storages.get(clazz);
         if (storage == null) {
@@ -115,17 +147,19 @@ public class ResourceServiceImpl
     }
 
     /**
-     * 获得基础数据仓库
+     * 获取基础数据存储对象
      * @param clazz
      * @return
      */
+    @SuppressWarnings("rawtypes")
     private Storage getStorage(Class clazz) {
         return storages.get(clazz);
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> T get(Object id, Class<T> clazz) {
-        Storage<?> storage = getStorage(clazz);
+        Storage storage = getStorage(clazz);
         if (storage != null) {
             return (T) storage.get(id);
         }
@@ -133,57 +167,62 @@ public class ResourceServiceImpl
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> List<T> listByIndex(String indexName, Class<T> clazz, Object... indexValues) {
-        Storage<?> storage = getStorage(clazz);
+        Storage storage = getStorage(clazz);
         if (storage != null) {
-            return (List<T>) storage.getIndex(indexName, indexValues);
+            return storage.getByIndex(indexName, indexValues);
         }
-        return new ArrayList<T>(0);
+        return Collections.unmodifiableList(Collections.EMPTY_LIST);
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T, PK> List<PK> listIdByIndex(String indexName, Class<T> clazz, Class<PK> pk,
             Object... indexValues) {
         Storage storage = getStorage(clazz);
         if (storage != null) {
             return storage.getIndexIdList(indexName, indexValues);
         }
-        return new ArrayList<PK>(0);
+        return Collections.unmodifiableList(Collections.EMPTY_LIST);
     }
 
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> T getByUnique(String indexName, Class<T> clazz, Object... indexValues) {
         Storage storage = getStorage(clazz);
         if (storage != null) {
-            List list = storage.getIndex(indexName, indexValues);
-            return (T) ((list != null) && (!list.isEmpty()) ? list.get(0) : null);
+            List<T> list = storage.getByIndex(indexName, indexValues);
+            return ((list != null) && (!list.isEmpty()) ? list.get(0) : null);
         }
         return null;
     }
 
     @Override
-    public <T> Collection<T> listAll(Class<T> clazz) {
-        Storage<?> storage = getStorage(clazz);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> List<T> listAll(Class<T> clazz) {
+        Storage storage = getStorage(clazz);
         if (storage != null) {
-            return (Collection<T>) storage.listAll();
+            return storage.listAll();
         }
-        return new ArrayList<T>(0);
+        return Collections.unmodifiableList(Collections.EMPTY_LIST);
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public <T> void addToIndex(String indexName, Object id, Class<T> clazz) {
         Storage storage = getStorage(clazz);
         if (storage == null) {
             return;
         }
-        Map indexTable = storage.getIndexTable();
+        Map<String, List<Object>> indexTable = storage.getIndexTable();
         if (indexTable == null) {
             return;
         }
         String newIndexKey = KeyBuilder.buildIndexKey(clazz, indexName, new Object[0]);
-        List idList = (List) indexTable.get(newIndexKey);
+        List<Object> idList = indexTable.get(newIndexKey);
         if (idList == null) {
-            idList = new ArrayList();
+            idList = new ArrayList<Object>();
             indexTable.put(newIndexKey, idList);
         }
         if (!idList.contains(id)) {
@@ -192,19 +231,20 @@ public class ResourceServiceImpl
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public <T> void addToIndex(String indexName, Object id, Class<T> clazz, Object... indexValues) {
         Storage storage = getStorage(clazz);
         if (storage == null) {
             return;
         }
         String newIndexKey = KeyBuilder.buildIndexKey(clazz, indexName, indexValues);
-        Map indexTable = storage.getIndexTable();
+        Map<String, List<Object>> indexTable = storage.getIndexTable();
         if (indexTable == null) {
             return;
         }
-        List idList = (List) indexTable.get(newIndexKey);
+        List<Object> idList = indexTable.get(newIndexKey);
         if (idList == null) {
-            idList = new ArrayList();
+            idList = new ArrayList<Object>();
             indexTable.put(newIndexKey, idList);
         }
         if (!idList.contains(id)) {
@@ -213,6 +253,7 @@ public class ResourceServiceImpl
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void reloadAll() {
         for (Class clazz : storages.keySet()) {
             try {

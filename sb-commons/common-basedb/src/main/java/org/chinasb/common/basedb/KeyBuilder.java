@@ -3,15 +3,15 @@ package org.chinasb.common.basedb;
 import org.springframework.util.StringUtils;
 
 /**
- * 键名生成器
+ * 键值生成器
  * @author zhujuan
  */
 public class KeyBuilder {
     /**
-     * 生成索引键名
-     * @param clazz
-     * @param indexName
-     * @param indexValues
+     * 生成索引键值
+     * @param clazz 索引数据类对象
+     * @param indexName 索引名称
+     * @param indexValues 索引值
      * @return
      */
     public static String buildIndexKey(Class<?> clazz, String indexName, Object... indexValues) {
