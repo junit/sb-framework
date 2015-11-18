@@ -5,7 +5,7 @@ import java.nio.file.WatchEvent;
 
 public interface WatchEventListener {
 
-    public boolean support(Path file, WatchEvent.Kind kind);
+    boolean support(Path file, WatchEvent.Kind<?> kind);
     
-    public void onWatchEvent(String dir, Path file, WatchEvent.Kind kind);
+    void onWatchEvent(String dir, Path file, WatchEvent.Kind<?> kind);
 }

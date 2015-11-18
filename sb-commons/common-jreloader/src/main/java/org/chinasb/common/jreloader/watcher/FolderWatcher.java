@@ -19,14 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
 /**
- * 目录监控
+ * folder watcher implementation.
+ * 
  * @author zhujuan
  *
  */
@@ -34,30 +34,28 @@ public class FolderWatcher implements Runnable {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(FolderWatcher.class);
 
-	private boolean started;
-	private String watchFloder;
+	private String[] dirNames;
 	private WatchService watchService;
 	private final Map<WatchKey, Path> keys = new HashMap<WatchKey, Path>();
 	private final List<WatchEventListener> listeners = new ArrayList<WatchEventListener>();
 
-	public FolderWatcher(String watchFloder) {
-		if(watchFloder == null) {
+	public FolderWatcher(String[] dirNames) {
+		if(dirNames == null) {
 			throw new IllegalArgumentException("watchFloder is null!");
 		}
-		this.watchFloder = watchFloder;
+		this.dirNames = dirNames;
 		try {
-			File file = new File(watchFloder);
-			if (file.exists()) {
-				if (file.isDirectory()) {
-					FileUtils.deleteDirectory(file);
-				} else {
-					file.delete();
-				}
-			}
-			file.mkdirs();
-			watchService = FileSystems.getDefault().newWatchService();
-			registerDirectory(Paths.get(this.watchFloder));
-			started = true;
+	          watchService = FileSystems.getDefault().newWatchService();
+            for (String dirName : this.dirNames) {
+                File file = new File(dirName);
+                if (!file.exists()) {
+                    file.mkdirs();
+                } else if (!file.isDirectory()) {
+                    file.delete();
+                    file.mkdirs();
+                }
+                registerDirectory(Paths.get(dirName));
+            }
 		} catch (IOException e) {
 			throw new RuntimeException("init failed!", e);
 		}
@@ -73,10 +71,16 @@ public class FolderWatcher implements Runnable {
 				StandardWatchEventKinds.ENTRY_CREATE,
 				StandardWatchEventKinds.ENTRY_MODIFY },
 				SensitivityWatchEventModifier.HIGH);
-		Path prev = keys.get(watchKey);
-		if (prev == null) {
-			LOGGER.debug("Directory : '{}' will be monitored for changes", dir);
-		}
+        Path prev = keys.get(watchKey);
+        if (LOGGER.isDebugEnabled()) {
+            if (prev == null) {
+                LOGGER.debug("Directory : '{}' will be monitored for changes", dir);
+            }
+        } else {
+            if (!dir.equals(prev)) {
+                LOGGER.debug("Directory updating : '{}' -> '{}'", prev, dir);
+            }
+        }
 		keys.put(watchKey, dir);
 	}
 
@@ -102,11 +106,11 @@ public class FolderWatcher implements Runnable {
 
 	@Override
 	public void run() {
-		while (started) {
+		while (true) {
 			WatchKey watchKey;
 			try {
 				watchKey = watchService.take();
-			} catch (InterruptedException x) {
+			} catch (InterruptedException e) {
 				return;
 			}
 
@@ -114,7 +118,12 @@ public class FolderWatcher implements Runnable {
 			if (dir == null) {
 				continue;
 			}
-
+			
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+            
 			for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
 				WatchEvent.Kind<?> kind = watchEvent.kind();
 				if (kind == StandardWatchEventKinds.OVERFLOW) {
@@ -151,7 +160,7 @@ public class FolderWatcher implements Runnable {
 		}
 	}
 
-	private void handleWatchEvent(String dir, Path file, WatchEvent.Kind kind) {
+	private void handleWatchEvent(String dir, Path file, WatchEvent.Kind<?> kind) {
 		List<WatchEventListener> currentListeners;
 
 		synchronized (listeners) {
@@ -163,13 +172,5 @@ public class FolderWatcher implements Runnable {
 				listener.onWatchEvent(dir, file, kind);
 			}
 		}
-	}
-	
-	public boolean isStarted() {
-		return started;
-	}
-
-	public void setStarted(boolean started) {
-		this.started = started;
 	}
 }
