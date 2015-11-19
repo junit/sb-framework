@@ -47,12 +47,15 @@ public class FolderWatcher implements Runnable {
 		try {
 	          watchService = FileSystems.getDefault().newWatchService();
             for (String dirName : this.dirNames) {
-                File file = new File(dirName);
-                if (!file.exists()) {
-                    file.mkdirs();
-                } else if (!file.isDirectory()) {
-                    file.delete();
-                    file.mkdirs();
+                File folder = new File(dirName);
+                if (!folder.exists()) {
+                    LOGGER.warn("directory[{}] does not exist!", folder);
+                    try {
+                        folder.mkdirs();
+                        LOGGER.info("create directory[{}] successed!", folder);
+                    } catch (Exception e) {
+                        LOGGER.error("create directory[{}] failed!", folder);
+                    }
                 }
                 registerDirectory(Paths.get(dirName));
             }
