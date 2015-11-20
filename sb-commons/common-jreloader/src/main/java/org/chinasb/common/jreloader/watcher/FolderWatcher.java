@@ -7,7 +7,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -18,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,36 +34,65 @@ public class FolderWatcher implements Runnable {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(FolderWatcher.class);
 
-	private String[] dirNames;
+    private final long interval;
 	private WatchService watchService;
 	private final Map<WatchKey, Path> keys = new HashMap<WatchKey, Path>();
 	private final List<WatchEventListener> listeners = new ArrayList<WatchEventListener>();
+    private Thread thread = null;
+    private ThreadFactory threadFactory;
+    private volatile boolean running = false;
 
-	public FolderWatcher(String[] dirNames) {
-		if(dirNames == null) {
-			throw new IllegalArgumentException("watchFloder is null!");
-		}
-		this.dirNames = dirNames;
+    public FolderWatcher() {
+        this(10000);
+    }
+    
+	public FolderWatcher(long interval) {
+	    this.interval = interval;
 		try {
-	          watchService = FileSystems.getDefault().newWatchService();
-            for (String dirName : this.dirNames) {
-                File folder = new File(dirName);
-                if (!folder.exists()) {
-                    LOGGER.warn("directory[{}] does not exist!", folder);
-                    try {
-                        folder.mkdirs();
-                        LOGGER.info("create directory[{}] successed!", folder);
-                    } catch (Exception e) {
-                        LOGGER.error("create directory[{}] failed!", folder);
-                    }
-                }
-                registerDirectory(Paths.get(dirName));
-            }
+	        watchService = FileSystems.getDefault().newWatchService();
 		} catch (IOException e) {
 			throw new RuntimeException("init failed!", e);
 		}
 	}
 
+    public synchronized void start() throws Exception {
+        if (running) {
+            throw new IllegalStateException("Monitor is already running");
+        }
+        running = true;
+        if (threadFactory != null) {
+            thread = threadFactory.newThread(this);
+        } else {
+            thread = new Thread(this);
+        }
+        thread.start();
+    }
+    
+    public synchronized void stop() throws Exception {
+        stop(interval);
+    }
+    
+    public synchronized void stop(long stopInterval) throws Exception {
+        if (running == false) {
+            throw new IllegalStateException("Monitor is not running");
+        }
+        running = false;
+        try {
+            thread.join(stopInterval);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    /**
+     * Set the thread factory.
+     *
+     * @param threadFactory the thread factory
+     */
+    public synchronized void setThreadFactory(ThreadFactory threadFactory) {
+        this.threadFactory = threadFactory;
+    }
+    
 	/**
 	 * Register the given directory with the WatchService.
 	 * @param dir
@@ -109,7 +138,7 @@ public class FolderWatcher implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (running) {
 			WatchKey watchKey;
 			try {
 				watchKey = watchService.take();
@@ -117,15 +146,19 @@ public class FolderWatcher implements Runnable {
 				return;
 			}
 
+            try {
+                Thread.sleep(interval);
+            } catch (final InterruptedException ignored) {
+            }
+            
+            if (!running) {
+                break;
+            }
+            
 			Path dir = keys.get(watchKey);
 			if (dir == null) {
 				continue;
 			}
-			
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            }
             
 			for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
 				WatchEvent.Kind<?> kind = watchEvent.kind();

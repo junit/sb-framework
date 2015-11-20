@@ -2,6 +2,7 @@ package org.chinasb.common.jreloader;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,7 +15,6 @@ import org.chinasb.common.jreloader.compiler.Compiler;
 import org.chinasb.common.jreloader.compiler.support.JdkCompiler;
 import org.chinasb.common.jreloader.watcher.FolderWatcher;
 import org.chinasb.common.jreloader.watcher.WatchEventListener;
-import org.chinasb.common.utility.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
@@ -35,12 +35,27 @@ public class JReloader {
 
 	private final Compiler complier;
 	private final ConcurrentMap<Integer, Reloader> reloaders;
+    private final FolderWatcher watcher;
 
     public JReloader() throws Exception {
         complier = new JdkCompiler();
         reloaders = new ConcurrentHashMap<Integer, Reloader>();
+        watcher = new FolderWatcher(Integer.getInteger("jreloader.interval", 5000));
+        watcher.start();
         String[] dirNames = System.getProperty("jreloader.dirs", ".").split("\\,");
-        FolderWatcher watcher = new FolderWatcher(dirNames);
+        for (String dirName : dirNames) {
+            File folder = new File(dirName);
+            if (!folder.exists()) {
+                LOGGER.warn("directory[{}] does not exist!", folder);
+                try {
+                    folder.mkdirs();
+                    LOGGER.info("create directory[{}] successed!", folder);
+                } catch (Exception e) {
+                    LOGGER.error("create directory[{}] failed!", folder);
+                }
+            }
+            watcher.registerDirectory(Paths.get(dirName));
+        }
         watcher.addWatchEventListener(new WatchEventListener() {
 
             @Override
@@ -61,9 +76,6 @@ public class JReloader {
                 return str.regionMatches(ingoreCase, str.length() - endLen, end, 0, endLen);
             }
         });
-        NamedThreadFactory factory = new NamedThreadFactory("脚本重载线程", true);
-        Thread thread = factory.newThread(watcher);
-        thread.start();
         LOGGER.info("重载脚本功能启动成功，开始监控目录[{}]...", Arrays.toString(dirNames));
     }
 	
