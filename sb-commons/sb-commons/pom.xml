@@ -28,11 +28,6 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>common-disruptor</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
 			<artifactId>common-jreloader</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -107,13 +102,12 @@
 						</goals>
 						<configuration>
 							<createSourcesJar>true</createSourcesJar>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
 							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
 							<artifactSet>
 								<includes>
 									<include>org.chinasb:common-basedb</include>
 							    	<include>org.chinasb:common-db</include>
-							    	<include>org.chinasb:common-disruptor</include>
-									<include>org.chinasb:common-executor</include>
 							    	<include>org.chinasb:common-jreloader</include>
 									<include>org.chinasb:common-lock</include>
 									<include>org.chinasb:common-rhino</include>

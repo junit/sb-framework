@@ -1,6 +1,7 @@
 package org.chinasb.common.socket.firewall;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Component;
 
 /**
  * 防火墙指令数据过滤处理
+ * 
  * @author zhujuan
  *
  */
+@Sharable
 @Component
 public class CmdAttackFilter extends ChannelHandlerAdapter {
     private static final Log LOGGER = LogFactory.getLog(CmdAttackFilter.class);
@@ -39,7 +42,7 @@ public class CmdAttackFilter extends ChannelHandlerAdapter {
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
         Channel session = ctx.channel();
         if ((firewall.getClientType(session) != ClientType.MIS) && (firewall.isBlocked(session))) {
             String remoteIp = sessionManager.getRemoteIp(session);
@@ -49,6 +52,7 @@ public class CmdAttackFilter extends ChannelHandlerAdapter {
             sessionManager.closeSession(session);
             return;
         }
-        ctx.fireChannelRegistered();
+        ctx.fireChannelActive();
     }
+
 }

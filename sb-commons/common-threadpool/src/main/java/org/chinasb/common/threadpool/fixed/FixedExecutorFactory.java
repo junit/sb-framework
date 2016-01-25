@@ -6,11 +6,11 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.chinasb.common.Constants;
-import org.chinasb.common.NamedThreadFactory;
-import org.chinasb.common.URL;
 import org.chinasb.common.threadpool.AbortPolicyWithReport;
 import org.chinasb.common.threadpool.ExecutorFactory;
+import org.chinasb.common.threadpool.NamedThreadFactory;
+import org.chinasb.common.utility.Constants;
+import org.chinasb.common.utility.URL;
 
 /**
  * 此线程池启动时即创建固定大小的线程数，不做任何伸缩，来源于：<code>Executors.newFixedThreadPool()</code>

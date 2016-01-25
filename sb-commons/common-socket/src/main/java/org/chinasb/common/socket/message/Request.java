@@ -1,15 +1,18 @@
 package org.chinasb.common.socket.message;
 
 /**
- * 请求的消息对象
+ * 请求消息
+ * 
  * @author zhujuan
  *
  */
 public class Request extends Message {
-    private static final long serialVersionUID = -2796633912216425311L;
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * 获取一个消息对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -25,6 +28,7 @@ public class Request extends Message {
 
     /**
      * 获取一个消息对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -39,6 +43,7 @@ public class Request extends Message {
 
     /**
      * 获取一个消息对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令

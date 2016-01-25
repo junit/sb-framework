@@ -4,11 +4,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * 键值生成器
+ * 
  * @author zhujuan
  */
 public class KeyBuilder {
     /**
      * 生成索引键值
+     * 
      * @param clazz 索引数据类对象
      * @param indexName 索引名称
      * @param indexValues 索引值

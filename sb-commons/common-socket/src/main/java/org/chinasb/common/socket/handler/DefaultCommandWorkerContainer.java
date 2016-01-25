@@ -1,10 +1,6 @@
 package org.chinasb.common.socket.handler;
 
-import java.io.File;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,12 +8,8 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.io.FileUtils;
-import org.chinasb.common.NamedThreadFactory;
-import org.chinasb.common.jreloader.JComplier;
-import org.chinasb.common.jreloader.JReLoader;
-import org.chinasb.common.jreloader.watcher.FolderWatcher;
-import org.chinasb.common.jreloader.watcher.WatchEventListener;
+import org.chinasb.common.jreloader.JReloader;
+import org.chinasb.common.jreloader.JReloader.BaseReloader;
 import org.chinasb.common.socket.handler.Interceptor.Interceptor;
 import org.chinasb.common.socket.handler.annotation.CommandInterceptor;
 import org.chinasb.common.socket.handler.annotation.CommandMapping;
@@ -29,12 +21,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
- * 功能模块容器
+ * 一个默认的指令工作器容器
  * 
  * @author zhujuan
  */
@@ -48,6 +45,8 @@ public class DefaultCommandWorkerContainer implements CommandWorkerContainer,
 
     @Autowired
     private CommandWorkerMeta commandWorkerMeta;
+    @Autowired
+    private JReloader jReloader;
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -75,61 +74,32 @@ public class DefaultCommandWorkerContainer implements CommandWorkerContainer,
                 globalInterceptors.add(interceptorInstance);
             }
         }
+
         // enable class reload
-        if (commandWorkerMeta.isReloadable()) {
-            final String reloadableDirectory = commandWorkerMeta.getDirectory();
-            final JComplier complier = new JComplier(reloadableDirectory);
-            FolderWatcher watcher = new FolderWatcher(reloadableDirectory);
-            watcher.addWatchEventListener(new WatchEventListener() {
+        final int reloadModuleId = commandWorkerMeta.getReloadModuleId();
+        if (reloadModuleId > 0) {
+            jReloader.addReloader(reloadModuleId, new BaseReloader() {
 
                 @Override
-                public void onWatchEvent(String dir, Path file, WatchEvent.Kind kind) {
-                    File javaFile = file.toFile();
-                    if (javaFile.exists()) {
-                        String fileName =
-                                javaFile.getName().substring(0, javaFile.getName().indexOf("."));
-                        try {
-                            String packageName = null;
-                            StringBuffer javaSource = new StringBuffer();
-                            List<String> lines = FileUtils.readLines(javaFile, "UTF-8");
-                            for (int i = 0; i < lines.size(); i++) {
-                                String line = lines.get(i);
-                                if (packageName == null && line.indexOf("package") != -1) {
-                                    packageName =
-                                            line.substring(line.indexOf(" "), line.length() - 1)
-                                                    .trim();
-                                }
-                                javaSource.append(line);
-                            }
-                            boolean success = complier.compile(fileName, javaSource.toString());
-                            if (success) {
-                                JReLoader loader = new JReLoader(reloadableDirectory);
-                                Class<?> clazz =
-                                        loader.loadClass(packageName == null ? fileName
-                                                : packageName + "." + fileName);
-                                if (clazz != null) {
-                                    analyzeClass(clazz);
-                                }
-                            }
-                        } catch (Exception e) {
-                            LOGGER.error("error in reload class:" + file, e);
-                        }
-                    }
+                public void onReload(Class<?> clazz) {
+                    String className =
+                            StringUtils.uncapitalize(StringUtils.unqualify(clazz.getName()));
+                    AutowireCapableBeanFactory factory =
+                            applicationContext.getAutowireCapableBeanFactory();
+                    BeanDefinitionRegistry registry = (BeanDefinitionRegistry) factory;
+                    GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+                    beanDefinition.setBeanClass(clazz);
+                    beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
+                    beanDefinition.setAutowireCandidate(true);
+                    registry.registerBeanDefinition(className, beanDefinition);
+                    factory.getBean(clazz);
                 }
 
                 @Override
-                public boolean support(Path file, Kind kind) {
-                    return checkEndsWith(file.toString(), ".java", false);
-                }
-
-                private boolean checkEndsWith(String str, String end, boolean ingoreCase) {
-                    int endLen = end.length();
-                    return str.regionMatches(ingoreCase, str.length() - endLen, end, 0, endLen);
+                public int getMoudle() {
+                    return reloadModuleId;
                 }
             });
-            NamedThreadFactory factory = new NamedThreadFactory("功能模块脚本重载线程", true);
-            Thread thread = factory.newThread(watcher);
-            thread.start();
         }
     }
 
@@ -204,41 +174,19 @@ public class DefaultCommandWorkerContainer implements CommandWorkerContainer,
     }
 
     @Override
-    public <T> T getWorker(Class<T> workerClazz) {
-        return getBean(workerClazz);
-    }
-    
-    /**
-     * 获取Spring bean
-     * @param beanClazz
-     * @return
-     */
     @SuppressWarnings("unchecked")
-    private <T> T getBean(Class<T> beanClazz) {
-        String[] names = applicationContext.getBeanNamesForType(beanClazz);
+    public <T> T getWorker(Class<T> workerClazz) {
+        String[] names = applicationContext.getBeanNamesForType(workerClazz);
         if ((names != null) && (names.length > 0)) {
             if (names.length == 1) {
                 return (T) applicationContext.getBean(names[0]);
             }
-            LOGGER.error("interface class[{}] too many implements bound !!", beanClazz);
+            LOGGER.error("interface class[{}] too many implements bound !!", workerClazz);
         } else {
-            LOGGER.error("bean or interface class[{}] NOT bound !!", beanClazz);
+            LOGGER.error("bean or interface class[{}] NOT bound !!", workerClazz);
         }
         return null;
     }
-    
-//    private <T> T getSimpleInstance(Class<T> workerClazz) {
-//        if (workerClazz == null) {
-//            return null;
-//        }
-//        T o;
-//        try {
-//            o = workerClazz.newInstance();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//        return o;
-//    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

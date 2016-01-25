@@ -2,6 +2,7 @@ package org.chinasb.common.socket.codec;
 
 /**
  * 解码器状态
+ * 
  * @author zhujuan
  *
  */

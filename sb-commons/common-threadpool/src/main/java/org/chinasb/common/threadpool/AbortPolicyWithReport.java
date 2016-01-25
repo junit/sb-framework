@@ -7,21 +7,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Abort Policy.
- * Log warn info when abort.
+ * Abort Policy. Log warn info when abort.
  * 
  * @author zhujuan
  */
 public class AbortPolicyWithReport extends ThreadPoolExecutor.AbortPolicy {
-    
+
     protected static final Logger logger = LoggerFactory.getLogger(AbortPolicyWithReport.class);
-    
+
     private final String threadName;
-        
+
     public AbortPolicyWithReport(String threadName) {
         this.threadName = threadName;
     }
-    
+
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
         String msg =

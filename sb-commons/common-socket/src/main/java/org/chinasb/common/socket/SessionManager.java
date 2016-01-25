@@ -16,12 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.chinasb.common.socket.codec.ResponseEncoder;
 import org.chinasb.common.socket.message.Response;
 import org.chinasb.common.socket.type.SessionType;
-import org.chinasb.common.utility.StringUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Strings;
 
 /**
  * 会话管理
@@ -55,12 +56,14 @@ public class SessionManager {
      * 历史最小在线用户数量
      */
     private int minOnlineCount = 0;
+
     @Autowired
     @Qualifier("responseEncoder")
     private ResponseEncoder encoder;
 
     /**
      * 设置消息编码器
+     * 
      * @param encoder
      */
     public void setEncoder(ResponseEncoder encoder) {
@@ -72,6 +75,7 @@ public class SessionManager {
 
     /**
      * 获取玩家ID
+     * 
      * @param session
      * @return
      */
@@ -85,6 +89,7 @@ public class SessionManager {
 
     /**
      * 把玩家加入在线用户列表
+     * 
      * @param playerId
      * @param session
      */
@@ -106,8 +111,8 @@ public class SessionManager {
         }
         session.attr(SessionType.PLAYER_ID_KEY).set(Long.valueOf(playerId));
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("SessionId: [ %s ] 绑定角色ID:[ %d ] ",
-                    new Object[] {session.id(), Long.valueOf(playerId)}));
+            LOGGER.debug(String.format("SessionId: [ %s ] 绑定角色ID:[ %d ] ", new Object[] {sessionId,
+                    Long.valueOf(playerId)}));
         }
         int onlineCount = getCurrentOnlineCount();
         if (maxOnlineCount < onlineCount) {
@@ -120,6 +125,7 @@ public class SessionManager {
 
     /**
      * 把玩家从在线用户列表删除
+     * 
      * @param playerId
      */
     public void removeFromOnlineList(long playerId) {
@@ -141,6 +147,7 @@ public class SessionManager {
 
     /**
      * 获取历史最大在线用户数量
+     * 
      * @return
      */
     public int getMaxOnlineCount() {
@@ -149,6 +156,7 @@ public class SessionManager {
 
     /**
      * 设置历史最大在线用户数量
+     * 
      * @param maxOnlineCount
      */
     public void setMaxOnlineCount(int maxOnlineCount) {
@@ -157,6 +165,7 @@ public class SessionManager {
 
     /**
      * 获取历史最小在线用户数量
+     * 
      * @return
      */
     public int getMinOnlineCount() {
@@ -165,6 +174,7 @@ public class SessionManager {
 
     /**
      * 设置历史最小在线用户数量
+     * 
      * @param minOnlineCount
      */
     public void setMinOnlineCount(int minOnlineCount) {
@@ -182,6 +192,7 @@ public class SessionManager {
 
     /**
      * 把玩家从在线用户列表删除
+     * 
      * @param session
      */
     public void removeFromOnlineList(Channel session) {
@@ -194,20 +205,22 @@ public class SessionManager {
 
     /**
      * 把Session加入匿名用户列表
+     * 
      * @param session
      */
     public void put2AnonymousList(Channel session) {
         if (session != null) {
-            ANONYMOUS_SESSION_MAP.put(session.id(), session);
+            ChannelId sessionId = session.id();
+            ANONYMOUS_SESSION_MAP.put(sessionId, session);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("Session [%s]加入匿名用户列表", new Object[] {session.id()
-                        .asLongText()}));
+                LOGGER.debug(String.format("Session [%s]加入匿名用户列表", new Object[] {sessionId}));
             }
         }
     }
 
     /**
      * 把Session从匿名用户列表删除
+     * 
      * @param session
      */
     public void removeFromAnonymousList(Channel session) {
@@ -216,8 +229,7 @@ public class SessionManager {
             if (ANONYMOUS_SESSION_MAP.containsKey(sessionId)) {
                 ANONYMOUS_SESSION_MAP.remove(sessionId);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Session [%s]从匿名用户列表删除",
-                            new Object[] {sessionId.asLongText()}));
+                    LOGGER.debug(String.format("Session [%s]从匿名用户列表删除", new Object[] {sessionId}));
                 }
             }
         }
@@ -225,6 +237,7 @@ public class SessionManager {
 
     /**
      * 检测玩家是否在线
+     * 
      * @param playerId
      * @return
      */
@@ -234,6 +247,7 @@ public class SessionManager {
 
     /**
      * 获取所有在线玩家ID列表
+     * 
      * @return
      */
     public Set<Long> getOnlinePlayerIdList() {
@@ -247,6 +261,7 @@ public class SessionManager {
 
     /**
      * 获取当前在线玩家数量
+     * 
      * @return
      */
     public int getCurrentOnlineCount() {
@@ -255,15 +270,17 @@ public class SessionManager {
 
     /**
      * 获取玩家Session
+     * 
      * @param playerId
      * @return
      */
     public Channel getSession(long playerId) {
         return ONLINE_PLAYERID_SESSION_MAP.get(Long.valueOf(playerId));
     }
-    
+
     /**
      * 获取所有管理Session
+     * 
      * @return
      */
     public List<Channel> getMisSessions() {
@@ -272,6 +289,7 @@ public class SessionManager {
 
     /**
      * 获取所有匿名Session
+     * 
      * @return
      */
     public List<Channel> getAnonymousSessions() {
@@ -280,51 +298,55 @@ public class SessionManager {
 
     /**
      * 把Session放入到管理后台会话列表
+     * 
      * @param session
      */
     public void put2MisList(Channel session) {
         if (session != null) {
-            if (ANONYMOUS_SESSION_MAP.containsKey(session.id())) {
-                ANONYMOUS_SESSION_MAP.remove(session.id());
+            ChannelId sessionId = session.id();
+            if (ANONYMOUS_SESSION_MAP.containsKey(sessionId)) {
+                ANONYMOUS_SESSION_MAP.remove(sessionId);
             }
-            MIS_SESSION_MAP.put(session.id(), session);
+            MIS_SESSION_MAP.put(sessionId, session);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("Session [%s]放入到管理后台会话列表", new Object[] {session.id()
-                        .asLongText()}));
+                LOGGER.debug(String.format("Session [%s]放入到管理后台会话列表", new Object[] {sessionId}));
             }
         }
     }
 
     /**
      * 把Session从管理后台会话列表删除
+     * 
      * @param session
      */
     public void removeFromMisList(Channel session) {
         if (session != null) {
-            if (MIS_SESSION_MAP.containsKey(session.id())) {
-                MIS_SESSION_MAP.remove(session.id());
+            ChannelId sessionId = session.id();
+            if (MIS_SESSION_MAP.containsKey(sessionId)) {
+                MIS_SESSION_MAP.remove(sessionId);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Session [%d]从管理后台会话列表删除", new Object[] {session
-                            .id().asLongText()}));
+                    LOGGER.debug(String.format("Session [%s]从管理后台会话列表删除", new Object[] {sessionId}));
                 }
             }
             if (session.isActive()) {
-                ANONYMOUS_SESSION_MAP.put(session.id(), session);
+                ANONYMOUS_SESSION_MAP.put(sessionId, session);
             }
         }
     }
 
     /**
      * 发送消息
+     * 
      * @param playerId 玩家ID
      * @param response 消息
      */
     public void write(long playerId, Response response) {
         write(getSession(playerId), response);
     }
-    
+
     /**
      * 发送消息
+     * 
      * @param session
      * @param response
      */
@@ -348,9 +370,10 @@ public class SessionManager {
             closeSession(session);
         }
     }
-    
+
     /**
      * 发送消息
+     * 
      * @param playerIdList 玩家ID列表
      * @param response 消息
      */
@@ -362,8 +385,8 @@ public class SessionManager {
         if (bytes == null) {
             return;
         }
-        for (Iterator<Long> localIterator = playerIdList.iterator(); localIterator.hasNext();) {
-            long playerId = ((Long) localIterator.next()).longValue();
+        for (Iterator<Long> it = playerIdList.iterator(); it.hasNext();) {
+            long playerId = ((Long) it.next()).longValue();
             Channel session = getSession(playerId);
             if (session != null) {
                 ByteBuf byteBuf = encoder.transformByteArray(bytes);
@@ -376,14 +399,16 @@ public class SessionManager {
 
     /**
      * 向全部在线玩家发送消息
+     * 
      * @param response
      */
     public void writeAllOnline(Response response) {
         write(new HashSet<Long>(ONLINE_PLAYERID_SESSION_MAP.keySet()), response);
     }
-    
+
     /**
      * 发送消息
+     * 
      * @param playerId
      * @param buffer
      */
@@ -392,9 +417,10 @@ public class SessionManager {
             write(getSession(playerId), buffer);
         }
     }
-    
+
     /**
      * 发送消息
+     * 
      * @param session
      * @param buffer
      */
@@ -421,6 +447,7 @@ public class SessionManager {
 
     /**
      * 关闭Session连接
+     * 
      * @param session
      */
     public void closeSession(Channel session) {
@@ -428,9 +455,10 @@ public class SessionManager {
             session.close();
         }
     }
-    
+
     /**
      * 获取Session的IP地址
+     * 
      * @param session
      * @return
      */
@@ -439,12 +467,12 @@ public class SessionManager {
             return "";
         }
         String remoteIp = session.attr(SessionType.REMOTE_HOST_KEY).get();
-        if (!StringUtility.isBlank(remoteIp)) {
+        if (!Strings.isNullOrEmpty(remoteIp)) {
             return remoteIp;
         }
         try {
             remoteIp = ((InetSocketAddress) session.remoteAddress()).getAddress().getHostAddress();
-            if (StringUtility.isBlank(remoteIp)) {
+            if (Strings.isNullOrEmpty(remoteIp)) {
                 remoteIp =
                         ((InetSocketAddress) session.localAddress()).getAddress().getHostAddress();
             }
@@ -452,6 +480,6 @@ public class SessionManager {
         } catch (Exception e) {
             remoteIp = null;
         }
-        return StringUtility.isBlank(remoteIp) ? "" : remoteIp;
+        return Strings.isNullOrEmpty(remoteIp) ? "" : remoteIp;
     }
 }

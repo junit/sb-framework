@@ -4,14 +4,16 @@ import io.netty.channel.Channel;
 
 import org.chinasb.common.socket.message.Request;
 
-
 /**
- * 模块方法(指令)处理接口
+ * 指令处理器接口
+ * 
  * @author zhujuan
  */
 public interface CommandHandler {
+
     /**
-     * 派发请求消息
+     * 分发处理
+     * 
      * @param session
      * @param request
      */

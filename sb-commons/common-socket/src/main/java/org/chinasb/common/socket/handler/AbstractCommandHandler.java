@@ -7,7 +7,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import org.chinasb.common.socket.SessionManager;
 import org.chinasb.common.socket.controller.Dispatcher;
 import org.chinasb.common.socket.message.Request;
 import org.chinasb.common.socket.message.Response;
@@ -16,28 +18,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * 模块方法(指令)抽象
+ * 一个抽象的指令处理器
+ * 
  * @author zhujuan
  */
 public abstract class AbstractCommandHandler implements CommandHandler {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     /**
-     * 模块方法(指令)解析器集合
+     * 指令解析器集合
      */
     protected Map<Integer, CommandResolver> COMMAND_RESOLVER =
             new ConcurrentHashMap<Integer, CommandResolver>();
     @Autowired
     protected Dispatcher dispatcher;
     @Autowired
+    protected SessionManager sessionManager;
+    @Autowired
     protected CommandWorkerContainer commandWorkerContainer;
 
     /**
-     * 获取功能模块标识
+     * 获取模块标识
      */
     protected abstract int getModule();
 
     @PostConstruct
-    public void initialize() {
+    protected void initialize() {
         Map<Integer, CommandResolver> resolvers = commandWorkerContainer.analyzeClass(getClass());
         if (resolvers.size() > 0) {
             for (Entry<Integer, CommandResolver> entry : resolvers.entrySet()) {
@@ -51,6 +56,11 @@ public abstract class AbstractCommandHandler implements CommandHandler {
             }
         }
         dispatcher.put(getModule(), this);
+    }
+
+    @PreDestroy
+    protected void destory() {
+        dispatcher.remove(getModule());
     }
 
     @Override
@@ -67,11 +77,7 @@ public abstract class AbstractCommandHandler implements CommandHandler {
                     logger.debug(String.format("module:[%d], cmd:[%d]",
                             new Object[] {Integer.valueOf(module), Integer.valueOf(cmd)}));
                 }
-                try {
-                    commandResolver.execute(request);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                commandResolver.execute(session, request, response);
             } else {
                 if (logger.isDebugEnabled()) {
                     logger.error(String.format("No Invoker for module:[%d], cmd:[%d]",

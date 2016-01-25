@@ -5,6 +5,7 @@ import org.springframework.context.event.ContextClosedEvent;
 
 /**
  * 数据库服务接口
+ * 
  * @author zhujuan
  */
 public interface DbService extends ApplicationListener<ContextClosedEvent> {
@@ -12,9 +13,10 @@ public interface DbService extends ApplicationListener<ContextClosedEvent> {
      * 数据库默认处理线程数量
      */
     static final int DEFAULT_DB_THREADS = Runtime.getRuntime().availableProcessors();
-    
+
     /**
      * 提交实体到更新队列
+     * 
      * @param entities
      */
     @SuppressWarnings("unchecked")
@@ -22,6 +24,7 @@ public interface DbService extends ApplicationListener<ContextClosedEvent> {
 
     /**
      * 实时更新实体
+     * 
      * @param entities
      */
     @SuppressWarnings("unchecked")
@@ -29,6 +32,7 @@ public interface DbService extends ApplicationListener<ContextClosedEvent> {
 
     /**
      * 实时更新实体, 并回调处理更新
+     * 
      * @param callback
      * @param entities
      */
@@ -37,6 +41,7 @@ public interface DbService extends ApplicationListener<ContextClosedEvent> {
 
     /**
      * 判断实体是否在更新队列中
+     * 
      * @param entity
      * @return
      */

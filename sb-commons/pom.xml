@@ -26,7 +26,6 @@
 		<module>sb-commons</module>
 		<module>common-basedb</module>
 		<module>common-db</module>
-		<module>common-disruptor</module>
 		<module>common-jreloader</module>
 		<module>common-lock</module>
 		<module>common-rhino</module>
@@ -40,19 +39,20 @@
 		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
 
 		<!-- Common libs -->
-		<slf4j_version>1.7.6</slf4j_version>
-		<spring_version>4.1.5.RELEASE</spring_version>
+		<slf4j_version>1.7.13</slf4j_version>
+		<spring_version>4.2.3.RELEASE</spring_version>
+		<reactor_version>2.0.7.RELEASE</reactor_version>
 		<guava_version>18.0</guava_version>
 		<commons_beanutils_version>1.9.2</commons_beanutils_version>
 		<commons_digester3_version>3.2</commons_digester3_version>
 		<commons_io_version>2.4</commons_io_version>
 		<rhino_version>1.7R4</rhino_version>
 		<poi_version>3.10-FINAL</poi_version>
-		<disruptor_version>3.3.2</disruptor_version>
 		<netty_version>5.0.0.Alpha2</netty_version>
 		<blazeds_version>3.2.0.3978</blazeds_version>
-		<hibernate_version>4.3.5.Final</hibernate_version>
+		<hibernate_version>5.0.4.Final</hibernate_version>
 		<jackson_version>1.9.13</jackson_version>
+		<owner_version>1.0.9</owner_version>
 		
 		<!-- for maven compiler plugin -->
 		<maven_compiler_plugin_version>3.1</maven_compiler_plugin_version>
@@ -82,6 +82,11 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-orm</artifactId>
 				<version>${spring_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.projectreactor.spring</groupId>
+				<artifactId>reactor-spring-context</artifactId>
+				<version>${reactor_version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
@@ -114,11 +119,6 @@
 				<version>${poi_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.lmax</groupId>
-				<artifactId>disruptor</artifactId>
-				<version>${disruptor_version}</version>
-			</dependency>
-			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
 				<version>${netty_version}</version>
@@ -143,6 +143,11 @@
 				<artifactId>hibernate-core</artifactId>
 				<version>${hibernate_version}</version>
 			</dependency>
+	        <dependency>
+	            <groupId>org.aeonbits.owner</groupId>
+	            <artifactId>owner-java8</artifactId>
+	            <version>${owner_version}</version>
+	        </dependency>
 		</dependencies>
 	</dependencyManagement>
 	<build>

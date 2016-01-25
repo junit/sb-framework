@@ -10,24 +10,26 @@ import java.util.Map;
 
 import org.chinasb.common.basedb.annotation.Index;
 import org.chinasb.common.rhino.RhinoHelper;
-import org.chinasb.common.utility.BeanUtility;
-import org.chinasb.common.utility.ReflectionUtility;
+import org.chinasb.common.utility.BeanHelper;
+import org.chinasb.common.utility.ReflectionHelper;
 
 import com.google.common.base.Objects;
 
 /**
  * 索引生成器
+ * 
  * @author zhujuan
  */
 public class IndexBuilder {
 
     /**
      * 创建索引访问器
+     * 
      * @param clazz 类对象
      * @return
      */
     public static Map<String, IndexVisitor> createIndexVisitors(Class<?> clazz) {
-        Field[] fields = ReflectionUtility.getDeclaredFieldsWith(clazz, Index.class);
+        Field[] fields = ReflectionHelper.getDeclaredFieldsWith(clazz, Index.class);
         Map<String, IndexVisitor> indexMap = new HashMap<String, IndexVisitor>();
         for (Field field : fields) {
             Index index = (Index) field.getAnnotation(Index.class);
@@ -60,6 +62,7 @@ public class IndexBuilder {
 
     /**
      * 索引访问器
+     * 
      * @author zhujuan
      */
     public static class IndexVisitor {
@@ -73,6 +76,7 @@ public class IndexBuilder {
 
         /**
          * 附加索引字段
+         * 
          * @param fieldList
          */
         public void attachField(Field... fieldList) {
@@ -90,6 +94,7 @@ public class IndexBuilder {
 
         /**
          * 获取索引访问器名称
+         * 
          * @return
          */
         public String getName() {
@@ -98,14 +103,16 @@ public class IndexBuilder {
 
         /**
          * 获取索引字段集合
+         * 
          * @return
          */
         public List<Field> getFields() {
             return fields;
         }
-        
+
         /**
          * 获取索引字段值域的组合键值(类名&索引名称#索引值1^索引值2)
+         * 
          * @param obj
          * @return
          */
@@ -117,7 +124,7 @@ public class IndexBuilder {
                     for (int i = 0; i < fields.size(); i++) {
                         Field field = (Field) fields.get(i);
                         field.setAccessible(true);
-                        Object fieldValue = ReflectionUtility.getField(field, obj);
+                        Object fieldValue = ReflectionHelper.getField(field, obj);
                         if (fieldValue != null) {
                             fieldValues[i] = String.valueOf(fieldValue);
                         } else {
@@ -132,6 +139,7 @@ public class IndexBuilder {
 
         /**
          * 判断是否可以索引{非空对象和表达式正确}
+         * 
          * @param obj
          * @return
          */
@@ -139,7 +147,7 @@ public class IndexBuilder {
         public boolean indexable(Object obj) {
             if (obj != null) {
                 if ((expressions != null) && (!expressions.isEmpty())) {
-                    Map<String, Object> ctx = BeanUtility.buildMap(obj);
+                    Map<String, Object> ctx = BeanHelper.buildMap(obj);
                     for (String expression : expressions) {
                         if (!(RhinoHelper.invoke(expression, ctx)).booleanValue()) {
                             return false;

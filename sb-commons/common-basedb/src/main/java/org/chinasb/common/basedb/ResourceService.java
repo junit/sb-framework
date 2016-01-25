@@ -4,11 +4,13 @@ import java.util.List;
 
 /**
  * 基础数据管理服务接口
+ * 
  * @author zhujuan
  */
-interface ResourceService {
+public interface ResourceService {
     /**
      * 获取基础数据
+     * 
      * @param id ID
      * @param clazz 基础数据类对象
      * @return
@@ -17,6 +19,7 @@ interface ResourceService {
 
     /**
      * 通过索引获取基础数据列表
+     * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
      * @param indexValues 索引值
@@ -26,6 +29,7 @@ interface ResourceService {
 
     /**
      * 通过索引获取基础数据ID列表
+     * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
      * @param pk 基础数据ID类对象
@@ -37,6 +41,7 @@ interface ResourceService {
 
     /**
      * 通过索引获取基础数据的唯一记录
+     * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
      * @param indexValues 索引值
@@ -46,6 +51,7 @@ interface ResourceService {
 
     /**
      * 获取全部基础数据列表
+     * 
      * @param clazz 基础数据类对象
      * @return
      */
@@ -53,6 +59,7 @@ interface ResourceService {
 
     /**
      * 添加基础数据ID索引
+     * 
      * @param indexName 索引名称
      * @param id 基础数据ID
      * @param clazz 基础数据类对象
@@ -61,6 +68,7 @@ interface ResourceService {
 
     /**
      * 添加基础数据ID索引
+     * 
      * @param indexName 索引名称
      * @param id 基础数据ID
      * @param clazz 基础数据类对象

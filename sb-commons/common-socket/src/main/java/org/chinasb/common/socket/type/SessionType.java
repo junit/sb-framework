@@ -9,6 +9,7 @@ import org.chinasb.common.socket.firewall.FloodRecord;
 
 /**
  * 会话存储相关数据类型
+ * 
  * @author zhujuan
  *
  */
@@ -16,15 +17,18 @@ public interface SessionType {
     /**
      * 应用程序上下文信息
      */
-    public static final AttributeKey<ApplicationContext> APPLICATION_CONTEXT_KEY = AttributeKey.valueOf("applicationContext");
+    public static final AttributeKey<ApplicationContext> APPLICATION_CONTEXT_KEY = AttributeKey
+            .valueOf("applicationContext");
     /**
-     * 解码器上下文信息
+     * 编解码器上下文信息
      */
-    public static final AttributeKey<CodecContext> CODEC_CONTEXT_KEY = AttributeKey.valueOf("codecContext");
+    public static final AttributeKey<CodecContext> CODEC_CONTEXT_KEY = AttributeKey
+            .valueOf("codecContext");
     /**
      * 连接首次请求状态
      */
-    public static final AttributeKey<Boolean> FIRST_REQUEST_KEY = AttributeKey.valueOf("firstRequest");
+    public static final AttributeKey<Boolean> FIRST_REQUEST_KEY = AttributeKey
+            .valueOf("firstRequest");
     /**
      * 玩家ID
      */
@@ -36,14 +40,19 @@ public interface SessionType {
     /**
      * 防火墙流量记录
      */
-    public static final AttributeKey<FloodRecord> FLOOD_RECORD_KEY = AttributeKey.valueOf("floodRecordKey");
+    public static final AttributeKey<FloodRecord> FLOOD_RECORD_KEY = AttributeKey
+            .valueOf("floodRecordKey");
     /**
      * 客户端连接类型
      */
-    public static final AttributeKey<ClientType> CLIENT_TYPE_KEY = AttributeKey.valueOf("CLIENT_TYPE_KEY");
+    public static final AttributeKey<ClientType> CLIENT_TYPE_KEY = AttributeKey
+            .valueOf("CLIENT_TYPE_KEY");
     /**
      * 客户端当前连接数量
      */
     public static final AttributeKey<Integer> WHICH_CLIENTS = AttributeKey.valueOf("whichClients");
-
+    /**
+     * 最后一次聊天时间
+     */
+    public static final AttributeKey<Long> LAST_CHAT_KEY = AttributeKey.valueOf("lastChat");
 }

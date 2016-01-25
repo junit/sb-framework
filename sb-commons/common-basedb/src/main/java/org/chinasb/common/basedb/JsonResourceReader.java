@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * JSON
+ * JSON 资源读取器
+ * 
  * @author zhujuan
  */
 @Component("jsonResourceReader")
@@ -28,7 +29,7 @@ public class JsonResourceReader implements ResourceReader {
     public String getFormat() {
         return "json";
     }
-    
+
     @Override
     public <E> Iterator<E> read(InputStream input, Class<E> clazz) {
         try {

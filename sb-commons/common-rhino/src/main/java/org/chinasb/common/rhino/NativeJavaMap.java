@@ -7,10 +7,12 @@ import org.mozilla.javascript.Scriptable;
 
 /**
  * Represents the scriptable object for Java object which implements the interface Map
+ * 
  * @author zhujuan
  */
 public class NativeJavaMap extends NativeJavaObject {
-    private static final long serialVersionUID = -9072824779336807076L;
+
+    private static final long serialVersionUID = 1L;
 
     public NativeJavaMap() {}
 

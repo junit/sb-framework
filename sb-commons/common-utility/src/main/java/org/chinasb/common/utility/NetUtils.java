@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import org.chinasb.common.LRUCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +20,9 @@ import org.slf4j.LoggerFactory;
  * @author zhujuan
  */
 
-public class NetUtility {
+public class NetUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(NetUtility.class);
+    private static final Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
     public static final String LOCALHOST = "127.0.0.1";
 
@@ -134,7 +133,7 @@ public class NetUtility {
         InetAddress address = getLocalAddress();
         return address == null ? LOCALHOST : address.getHostAddress();
     }
-    
+
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
     /**

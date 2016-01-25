@@ -5,14 +5,12 @@ import java.util.Collection;
 
 import org.chinasb.common.db.dao.CommonDao;
 import org.hibernate.Criteria;
-import org.hibernate.NonUniqueObjectException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.orm.hibernate4.HibernateSystemException;
 import org.springframework.orm.hibernate4.HibernateTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +18,7 @@ import com.google.common.base.Strings;
 
 /**
  * 通用DAO
+ * 
  * @author zhujuan
  */
 @Service
@@ -38,7 +37,7 @@ public class CommonDaoImpl implements CommonDao {
     public final SessionFactory getSessionFactory() {
         return hibernateTemplate != null ? hibernateTemplate.getSessionFactory() : null;
     }
-    
+
     protected final Session getSession() throws DataAccessResourceFailureException,
             IllegalStateException {
         return getSessionFactory().getCurrentSession();
@@ -47,7 +46,7 @@ public class CommonDaoImpl implements CommonDao {
     public <T> Criteria createCriteria(Class<T> entityClazz) {
         return getSession().createCriteria(entityClazz);
     }
-    
+
     @Override
     public <T> T get(Serializable id, Class<T> entityClazz) {
         return hibernateTemplate.get(entityClazz, id);
@@ -72,13 +71,7 @@ public class CommonDaoImpl implements CommonDao {
     @Override
     public <T> void update(Collection<T> entities) {
         for (T entity : entities) {
-            try {
-                hibernateTemplate.update(entity);
-            } catch (NonUniqueObjectException nouEx) {
-                hibernateTemplate.merge(entity);
-            } catch (HibernateSystemException hsEx) {
-                hibernateTemplate.merge(entity);
-            }
+            hibernateTemplate.update(entity);
         }
     }
 
@@ -89,7 +82,7 @@ public class CommonDaoImpl implements CommonDao {
             hibernateTemplate.delete(entity);
         }
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> T execute(DetachedCriteria detachedCriteria) {
@@ -108,7 +101,7 @@ public class CommonDaoImpl implements CommonDao {
         }
         return 0;
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> T query(String sql) {
@@ -118,7 +111,7 @@ public class CommonDaoImpl implements CommonDao {
         }
         return null;
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> T query(String sql, Class<T> entityClazz) {

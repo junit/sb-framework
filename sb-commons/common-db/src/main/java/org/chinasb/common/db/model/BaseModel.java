@@ -6,6 +6,7 @@ import org.chinasb.common.lock.IEntity;
 
 /**
  * 实体抽象基类
+ * 
  * @author zhujuan
  *
  * @param <PK>
@@ -13,7 +14,7 @@ import org.chinasb.common.lock.IEntity;
 @SuppressWarnings("serial")
 public abstract class BaseModel<PK extends Comparable<PK> & Serializable> implements IEntity<PK>,
         Serializable {
-    
+
     /**
      * 获取实体ID
      */
@@ -52,7 +53,7 @@ public abstract class BaseModel<PK extends Comparable<PK> & Serializable> implem
         result = prime * result + (getId() == null ? 0 : getId().hashCode());
         return result;
     }
-    
+
     /**
      * 获取实体标识
      */

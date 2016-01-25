@@ -1,96 +1,94 @@
 package org.chinasb.common.socket.config;
 
+import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 
-import org.chinasb.common.utility.StringUtility;
-import org.chinasb.common.utility.configuration.ConfigurableProcessor;
-import org.chinasb.common.utility.configuration.Property;
+import org.aeonbits.owner.Config;
+import org.aeonbits.owner.Config.Sources;
+import org.aeonbits.owner.ConfigCache;
+import org.aeonbits.owner.Converter;
+
+import com.google.common.base.Strings;
 
 /**
  * 服务器配置
+ * 
  * @author zhujuan
  *
  */
-public class ServerConfig {
+@Sources({"classpath:server.properties"})
+public interface ServerConfig extends Config {
     /**
      * 管理后台IP
      */
-    @Property(defaultValue = "127.0.0.1", fileName = "server", key = "server.mis.ip")
-    private static String misIp;
+    @Key("server.mis.ip")
+    @DefaultValue("127.0.0.1")
+    @ConverterClass(MisRegexConverter.class)
+    Pattern[] misRegex();
+
+    /**
+     * 公共队列大小
+     */
+    @Key("common.queue.size")
+    @DefaultValue("5")
+    int commonQueueSize();
+
     /**
      * 默认端口
      */
-    @Property(defaultValue = "9999", fileName = "server", key = "server.socket.port")
-    private static int socketPort;
+    @Key("server.socket.port")
+    @DefaultValue("9999")
+    int socketPort();
+
     /**
      * 读缓冲大小
      */
-    @Property(defaultValue = "2048", fileName = "server", key = "server.socket.buffer.read")
-    private static int readBufferSize;
+    @Key("server.socket.buffer.read")
+    @DefaultValue("2048")
+    int readBufferSize();
+
     /**
      * 接收缓冲大小
      */
-    @Property(defaultValue = "40960", fileName = "server", key = "server.socket.buffer.receive")
-    private static int receiveBufferSize;
+    @Key("server.socket.buffer.receive")
+    @DefaultValue("40960")
+    int receiveBufferSize();
+
     /**
      * 写缓冲大小
      */
-    @Property(defaultValue = "4096", fileName = "server", key = "server.socket.buffer.write")
-    private static int writeBufferSize;
+    @Key("server.socket.buffer.write")
+    @DefaultValue("4096")
+    int writeBufferSize();
+
     /**
      * 是否启用nagle算法，TcpNoDelay=false为启用nagle算法，Nagle算法的立意是良好的,避免网络中充塞小封包,提高网络的利用率
      */
-    @Property(defaultValue = "false", fileName = "server", key = "server.tcp.nodelay")
-    private static boolean tcpNodelay;
+    @Key("server.tcp.nodelay")
+    @DefaultValue("false")
+    boolean tcpNodelay();
+
     /**
      * 默认值为读取自系统的/proc/sys/net/core/somaxconn
      */
-    @Property(defaultValue = "5000", fileName = "server", key = "server.max.backlog")
-    private static int serverMaxBacklog;
+    @Key("server.max.backlog")
+    @DefaultValue("1024")
+    int serverMaxBacklog();
 
-    public static int getSocketPort() {
-        return socketPort;
-    }
-
-    public static int getReadBufferSize() {
-        return readBufferSize;
-    }
-
-    public static int getReceiveBufferSize() {
-        return receiveBufferSize;
-    }
-
-    public static int getWriteBufferSize() {
-        return writeBufferSize;
-    }
-
-    public static boolean isTcpNodelay() {
-        return tcpNodelay;
-    }
-
-    public static int getServerMaxBacklog() {
-        return serverMaxBacklog;
-    }
-
-    private static Pattern[] misRegex = null;
-
-    private static void initPattern() {
-        String[] s = misIp.split(",");
-        if ((s == null) || (s.length == 0)) {
-            return;
-        }
-        misRegex = new Pattern[s.length];
-        for (int i = 0; i < s.length; i++) {
-            String str = s[i].trim().replace(".", "[.]").replace("*", "[0-9]*");
-            misRegex[i] = Pattern.compile(str);
+    class MisRegexConverter implements Converter<Pattern> {
+        public Pattern convert(Method targetMethod, String text) {
+            String str = text.trim().replace(".", "[.]").replace("*", "[0-9]*");
+            return Pattern.compile(str);
         }
     }
 
     public static boolean isAllowMisIp(String ip) {
+        ServerConfig sc = ConfigCache.getOrCreate(ServerConfig.class);
+        Pattern[] misRegex = sc.misRegex();
         if (misRegex == null) {
             return false;
         }
-        if (StringUtility.isBlank(ip)) {
+        if (Strings.isNullOrEmpty(ip)) {
             return false;
         }
         for (Pattern pattern : misRegex) {
@@ -101,10 +99,5 @@ public class ServerConfig {
             }
         }
         return false;
-    }
-
-    static {
-        ConfigurableProcessor.process(ServerConfig.class);
-        initPattern();
     }
 }

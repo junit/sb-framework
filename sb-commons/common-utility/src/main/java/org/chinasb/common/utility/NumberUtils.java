@@ -5,7 +5,7 @@ package org.chinasb.common.utility;
  * 
  * @author zhujuan
  */
-public class NumberUtility {
+public class NumberUtils {
 
     /**
      * Number类型转换

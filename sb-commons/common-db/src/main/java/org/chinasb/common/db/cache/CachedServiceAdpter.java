@@ -18,6 +18,7 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * 缓存服务适配器
+ * 
  * @author zhujuan
  */
 public abstract class CachedServiceAdpter {
@@ -38,9 +39,10 @@ public abstract class CachedServiceAdpter {
                     return new Object();
                 }
             });
-    
+
     /**
      * 获取实体键名
+     * 
      * @param id
      * @param entityClazz
      * @return
@@ -52,6 +54,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 获取实体
+     * 
      * @param id
      * @param clazz
      * @return
@@ -63,6 +66,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 获取实体
+     * 
      * @param id
      * @param clazz
      * @param fromCache true:获取缓存中的数据， false:获取DB中的数据
@@ -83,7 +87,7 @@ public abstract class CachedServiceAdpter {
                 return entity;
             }
         }
-        
+
         Object lockObject = OBJECT_MAPS.getUnchecked(key);
         try {
             synchronized (lockObject) {
@@ -103,6 +107,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 获取实体集合
+     * 
      * @param idList
      * @param entityClazz
      * @return
@@ -121,9 +126,10 @@ public abstract class CachedServiceAdpter {
         }
         return entityList;
     }
-    
+
     /**
      * 获取实体缓存
+     * 
      * @param id
      * @param entityClazz
      * @return
@@ -136,6 +142,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 获取实体
+     * 
      * @param id
      * @param entityClazz
      * @return
@@ -143,9 +150,10 @@ public abstract class CachedServiceAdpter {
     protected <T, PK extends Serializable> T getEntityFromDB(PK id, Class<T> entityClazz) {
         return commonDao.get(id, entityClazz);
     }
-    
+
     /**
      * 移除实体缓存
+     * 
      * @param id
      * @param entityClazz
      */
@@ -156,6 +164,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 移除实体缓存
+     * 
      * @param idList
      * @param entityClazz
      */
@@ -167,9 +176,10 @@ public abstract class CachedServiceAdpter {
             }
         }
     }
-    
+
     /**
      * 添加实体缓存
+     * 
      * @param entiys
      * @return
      */
@@ -189,6 +199,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 添加实体缓存
+     * 
      * @param entiys
      * @return
      */
@@ -209,6 +220,7 @@ public abstract class CachedServiceAdpter {
 
     /**
      * 清除过期缓存
+     * 
      * @param clearInValidCommonCache 是否清除通用缓存标志{true：清除, false:忽略}
      */
     protected void clearInValidateCacheObject(boolean clearInValidCommonCache) {

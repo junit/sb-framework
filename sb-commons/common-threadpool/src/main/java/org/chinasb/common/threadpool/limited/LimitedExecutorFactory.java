@@ -6,11 +6,11 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.chinasb.common.Constants;
-import org.chinasb.common.NamedThreadFactory;
-import org.chinasb.common.URL;
 import org.chinasb.common.threadpool.AbortPolicyWithReport;
 import org.chinasb.common.threadpool.ExecutorFactory;
+import org.chinasb.common.threadpool.NamedThreadFactory;
+import org.chinasb.common.utility.Constants;
+import org.chinasb.common.utility.URL;
 
 /**
  * 此线程池一直增长，直到上限，增长后不收缩。

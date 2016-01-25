@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 import org.chinasb.common.socket.handler.annotation.CommandInterceptor;
 
 /**
- * 模块方法（指令）拦截器
+ * 指令拦截器注解
+ * 
  * @author zhujuan
  *
  */
@@ -17,6 +18,7 @@ import org.chinasb.common.socket.handler.annotation.CommandInterceptor;
 public @interface MethodInterceptors {
     /**
      * 拦截器
+     * 
      * @return
      */
     CommandInterceptor[] value();

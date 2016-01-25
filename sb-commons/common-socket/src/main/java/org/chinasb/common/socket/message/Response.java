@@ -5,12 +5,14 @@ import java.io.Serializable;
 import org.chinasb.common.socket.type.ResponseCode;
 
 /**
- * 返回的消息对象
+ * 返回消息
+ * 
  * @author zhujuan
  *
  */
 public class Response extends Message implements Serializable {
-    private static final long serialVersionUID = -2611825248950031293L;
+
+    private static final long serialVersionUID = 1L;
     
     /**
      * 消息状态
@@ -19,6 +21,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个默认的消息对象
+     * 
      * @param module 功能模块
      * @param cmd 模块指令
      * @return
@@ -33,6 +36,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个默认的消息对象
+     * 
      * @param module 功能模块
      * @param cmd 模块指令
      * @param value 消息内容
@@ -46,6 +50,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个消息返回对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -61,6 +66,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个消息返回对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -75,6 +81,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个消息返回对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -91,6 +98,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取一个消息返回对象
+     * 
      * @param sn 消息序列号
      * @param module 功能模块
      * @param cmd 模块指令
@@ -99,7 +107,8 @@ public class Response extends Message implements Serializable {
      * @param value 消息内容
      * @return
      */
-    public static Response valueOf(int sn, int module, int cmd, int messageType, int status, Object value) {
+    public static Response valueOf(int sn, int module, int cmd, int messageType, int status,
+            Object value) {
         Response response = valueOf(sn, module, cmd, messageType, status);
         response.setValue(value);
         return response;
@@ -107,6 +116,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 获取消息状态
+     * 
      * @return
      */
     public int getStatus() {
@@ -115,6 +125,7 @@ public class Response extends Message implements Serializable {
 
     /**
      * 设置消息状态
+     * 
      * @param status
      * @return
      */

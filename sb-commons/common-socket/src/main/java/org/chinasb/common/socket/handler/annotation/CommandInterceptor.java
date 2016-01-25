@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 import org.chinasb.common.socket.handler.Interceptor.Interceptor;
 
 /**
- * 拦截器注解
+ * 指令拦截器注解
+ * 
  * @author zhujuan
  *
  */
@@ -16,13 +17,16 @@ import org.chinasb.common.socket.handler.Interceptor.Interceptor;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommandInterceptor {
     /**
-     * 拦截器
+     * 拦截器类
+     * 
      * @return
      */
-	Class<? extends Interceptor> value();
-	/**
-	 * 拦截器描述
-	 * @return
-	 */
-	String description() default "";
+    Class<? extends Interceptor> value();
+
+    /**
+     * 拦截器描述
+     * 
+     * @return
+     */
+    String description() default "";
 }

@@ -9,6 +9,7 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * 对象锁持有者
+ * 
  * @author zhujuan
  */
 @SuppressWarnings("rawtypes")
@@ -26,6 +27,7 @@ public class ObjectLockHolder {
 
     /**
      * 类的对象锁持有者
+     * 
      * @author zhujuan
      *
      */
@@ -49,13 +51,14 @@ public class ObjectLockHolder {
                         return new ObjectLock(object);
                     }
                 });
-        
+
         public Holder(Class clz) {
             this.clz = clz;
         }
-        
+
         /**
          * 获取对象锁
+         * 
          * @param object
          * @return
          */
@@ -65,6 +68,7 @@ public class ObjectLockHolder {
 
         /**
          * 获取加时锁
+         * 
          * @return
          */
         public Lock getTieLock() {
@@ -73,34 +77,39 @@ public class ObjectLockHolder {
 
         /**
          * 获取锁的数量
+         * 
          * @return
          */
         public long count() {
             return locks.size();
         }
     }
-    
+
     /**
      * 获取类的对象锁持有者
+     * 
      * @param clz
      * @return
      */
     private Holder getHolder(Class clz) {
         return HOLDERS.getUnchecked(clz);
     }
-    
+
     /**
      * 获取对象实例的对象锁
+     * 
      * @param object
      * @return
      */
     public ObjectLock getLock(Object object) {
-        if (object == null) return null;
+        if (object == null)
+            return null;
         return getHolder(object.getClass()).getLock(object);
     }
-    
+
     /**
      * 获取类的对象锁持有者的加时锁(tie-breaker)
+     * 
      * @param clz
      * @return
      */
@@ -110,6 +119,7 @@ public class ObjectLockHolder {
 
     /**
      * 获取类的对象锁持有者的锁的数量
+     * 
      * @param clz
      * @return
      */

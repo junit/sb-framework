@@ -1,4 +1,4 @@
-package org.chinasb.common;
+package org.chinasb.common.utility;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

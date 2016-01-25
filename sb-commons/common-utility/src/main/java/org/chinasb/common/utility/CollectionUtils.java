@@ -10,9 +10,10 @@ import java.util.Map;
 
 /**
  * 集合工具类
+ * 
  * @author zhujuan
  */
-public abstract class CollectionUtility {
+public abstract class CollectionUtils {
 
     /**
      * 拷贝数据集合
@@ -255,6 +256,6 @@ public abstract class CollectionUtility {
         return collection != null && collection.size() > 0;
     }
 
-    private CollectionUtility() {}
+    private CollectionUtils() {}
 
 }

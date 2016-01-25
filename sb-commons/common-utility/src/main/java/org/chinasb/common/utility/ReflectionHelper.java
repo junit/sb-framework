@@ -13,7 +13,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author zhujuan
  */
-public abstract class ReflectionUtility extends ReflectionUtils {
+public abstract class ReflectionHelper extends ReflectionUtils {
 
     public static <A extends Annotation> Field findUniqueFieldWithAnnotation(Class<?> clazz,
             final Class<A> type) {

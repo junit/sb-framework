@@ -2,24 +2,24 @@ package org.chinasb.common.socket.firewall;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.SessionManager;
-import org.chinasb.common.socket.codec.RequestDecoder;
 import org.chinasb.common.socket.type.SessionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * 防火墙字节数据过滤处理
+ * 
  * @author zhujuan
  *
  */
+@Sharable
 @Component
 public class ByteAttackFilter extends ChannelHandlerAdapter {
     private static final Log LOGGER = LogFactory.getLog(ByteAttackFilter.class);
@@ -57,7 +57,7 @@ public class ByteAttackFilter extends ChannelHandlerAdapter {
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         Channel session = ctx.channel();
         int currClients = firewall.increaseClients();
         if ((firewall.getClientType(session) != ClientType.MIS) && (firewall.isBlocked(session))) {
@@ -69,36 +69,35 @@ public class ByteAttackFilter extends ChannelHandlerAdapter {
             return;
         }
         if (firewall.isMaxClientLimit(currClients)) {
+            LOGGER.error(String.format("Connections limit, close session...: SESSION[%s]",
+                    new Object[] {session.id()}));
             sessionManager.closeSession(session);
-            LOGGER.error("Connections limit, close session...");
             return;
         }
         session.attr(SessionType.WHICH_CLIENTS).set(Integer.valueOf(currClients));;
-        ctx.fireChannelActive();
-    }
-
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        Channel session = ctx.channel();
-        if (firewall.getClientType(session) != ClientType.MIS) {
-            Integer whichClient = session.attr(SessionType.WHICH_CLIENTS).getAndRemove();
-            if ((whichClient != null) && (firewall.isMaxClientActives(whichClient.intValue()))
-                    && (firewall.isMaxClientActive())) {
-                if (session.isActive()) {
-                    LOGGER.info(String.format("SESSION[%s] 发送SOCKET安全策略...",
-                            new Object[] {session.id()}));
-                    ChannelFuture future = session.write(RequestDecoder.policyResponse);
-                    future.addListener(ChannelFutureListener.CLOSE);
-                }
-                return;
-            }
-        }
         ctx.fireChannelRegistered();
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        Channel session = ctx.channel();
+        Integer whichClient = session.attr(SessionType.WHICH_CLIENTS).getAndRemove();
+        if (firewall.getClientType(session) != ClientType.MIS) {
+            if ((whichClient != null) && (firewall.isMaxClientActives(whichClient.intValue()))
+                    && (firewall.isMaxClientActive())) {
+                LOGGER.error(String.format(
+                        "Active connections limit, close session...: SESSION[%s]",
+                        new Object[] {session.id()}));
+                sessionManager.closeSession(session);
+                return;
+            }
+        }
+        ctx.fireChannelActive();
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
         firewall.decreaseClients();
-        ctx.fireChannelInactive();
+        ctx.fireChannelUnregistered();
     }
 }

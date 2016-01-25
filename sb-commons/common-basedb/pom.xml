@@ -22,12 +22,12 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>common-utility</artifactId>
+			<artifactId>common-rhino</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>common-rhino</artifactId>
+			<artifactId>common-utility</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

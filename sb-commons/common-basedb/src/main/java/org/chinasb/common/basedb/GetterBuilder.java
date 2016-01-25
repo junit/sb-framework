@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.chinasb.common.basedb.annotation.Id;
-import org.chinasb.common.utility.ReflectionUtility;
+import org.chinasb.common.utility.ReflectionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
@@ -13,6 +13,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * 取值生成器
+ * 
  * @author zhujuan
  */
 public class GetterBuilder {
@@ -20,11 +21,12 @@ public class GetterBuilder {
 
     /**
      * 创建ID取值器
+     * 
      * @param clz
      * @return
      */
     public static Getter createIdGetter(Class<?> clz) {
-        Field[] fields = ReflectionUtility.getDeclaredFieldsWith(clz, Id.class);
+        Field[] fields = ReflectionHelper.getDeclaredFieldsWith(clz, Id.class);
         if (fields == null) {
             FormattingTuple message = MessageFormatter.format("类 [{}] 缺少唯一标识声明", clz);
             LOGGER.error(message.getMessage());
@@ -40,6 +42,7 @@ public class GetterBuilder {
 
     /**
      * 属性取值
+     * 
      * @author zhujuan
      */
     private static class FieldGetter implements Getter {
@@ -66,6 +69,7 @@ public class GetterBuilder {
 
     /**
      * 方法取值
+     * 
      * @author zhujuan
      */
     private static class MethodGetter implements Getter {

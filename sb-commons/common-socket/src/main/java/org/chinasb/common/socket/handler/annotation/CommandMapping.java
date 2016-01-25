@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 模块指令注解
+ * 指令映射注解
+ * 
  * @author zhujuan
  *
  */
@@ -15,11 +16,14 @@ import java.lang.annotation.Target;
 public @interface CommandMapping {
     /**
      * 指令标识
+     * 
      * @return
      */
     int cmd();
+
     /**
      * 指令描述
+     * 
      * @return
      */
     String description() default "";

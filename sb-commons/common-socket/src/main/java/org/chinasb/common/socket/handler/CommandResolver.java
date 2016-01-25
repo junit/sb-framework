@@ -1,14 +1,23 @@
 package org.chinasb.common.socket.handler;
 
+import org.chinasb.common.socket.message.Request;
+import org.chinasb.common.socket.message.Response;
+
+import io.netty.channel.Channel;
+
 /**
- * 模块指令解析接口
+ * 指令解析器接口
+ * 
  * @author zhujuan
  */
 public interface CommandResolver {
+
     /**
-     * 执行指令
-     * @param message 消息对象
-     * @throws Exception
+     * 解析执行
+     * 
+     * @param session
+     * @param request
+     * @param response
      */
-    public void execute(Object message) throws Exception;
+    public void execute(Channel session, Request request, Response response);
 }

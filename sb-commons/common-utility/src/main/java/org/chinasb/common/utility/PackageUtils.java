@@ -20,8 +20,8 @@ import org.springframework.util.SystemPropertyUtils;
  * 
  * @author zhujuan
  */
-public class PackageUtility {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PackageUtility.class);
+public class PackageUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PackageUtils.class);
     private static final ResourcePatternResolver resourcePatternResolver =
             new PathMatchingResourcePatternResolver();
     private static final MetadataReaderFactory metadataReaderFactory =

@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 资源适配器
+ * 
  * @author zhujuan
  */
 public abstract class ResourceAdapter implements ResourceListener {
-    
+
     @Autowired
     protected ResourceService resourceService;
 
@@ -23,6 +24,7 @@ public abstract class ResourceAdapter implements ResourceListener {
 
     /**
      * 获取基础数据列表
+     * 
      * @param clazz 基础数据类对象
      * @param idList 基础数据ID列表
      * @return

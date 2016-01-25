@@ -8,23 +8,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 
-import org.chinasb.common.Constants;
-import org.chinasb.common.NamedThreadFactory;
 import org.chinasb.common.db.dao.CommonDao;
 import org.chinasb.common.db.executor.DbCallback;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.BaseModel;
-import org.chinasb.common.utility.CollectionUtility;
-import org.chinasb.common.utility.ThreadPoolUtils;
+import org.chinasb.common.threadpool.NamedThreadFactory;
+import org.chinasb.common.threadpool.reactor.DispatcherFactory;
+import org.chinasb.common.utility.CollectionUtils;
+import org.chinasb.common.utility.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,99 +29,53 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Service;
 
+import reactor.core.Dispatcher;
+
 import com.google.common.collect.Sets;
 
 /**
  * 数据库持久化服务
+ * 
  * @author zhujuan
  */
 @Service
 public class DbServiceImpl implements DbService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DbServiceImpl.class);
     /**
-     * 线程池
+     * 任务调度器
      */
-    private static ExecutorService DB_POOL_SERVICE;
-    /**
-     * 任务队列
-     */
-    private static final LinkedBlockingQueue<Runnable> DB_SAVER_QUEUE = new LinkedBlockingQueue<Runnable>(Integer.MAX_VALUE);
+    private final Dispatcher dispatcher;
     /**
      * 实体集合
      */
-    private static final ConcurrentMap<Class<?>, Set<BaseModel<?>>> DB_OBJECT_MAP = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>(100);
+    private static final ConcurrentMap<Class<?>, Set<BaseModel<?>>> DB_OBJECT_MAP =
+            new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>(100);
     /**
      * 允许尝试提交次数
      */
     private static final int MAX_RETRY_COUNT = 5;
-    
-    /**
-     * 线程池维护线程的最少数量
-     */
-    @Autowired(required = false)
-    @Qualifier("dbcache.db_pool_capacity")
-    private Integer dbPoolSize;
-    
-    /**
-     * 线程池维护线程的最大数量
-     */
-    @Autowired(required = false)
-    @Qualifier("dbcache.db_pool_max_capacity")
-    private Integer dbPoolMaxSize;
-    
-    /**
-     * 线程池维护线程所允许的空闲时间
-     */
-    @Autowired(required = false)
-    @Qualifier("dbcache.db_pool_keep_alive_time")
-    private Integer keepAliveTime;
-    
     /**
      * （实时任务：entityBlockTime <= 0，周期性任务：entityBlockTime > 0）
      */
     @Autowired(required = false)
     @Qualifier("dbcache.max_block_time_of_entity_cache")
     private Integer entityBlockTime;
-    
+
     @Autowired
     @Qualifier("commonDaoImpl")
     private CommonDao commonDao;
     private final ReentrantLock takeLock;
     private final Condition notEmpty;
     /**
-     * 实体队列持久化处理任务
-     */
-    public final Runnable CUSTOMER_TASK;
-    /**
      * 周期性处理提交实体任务
      */
     public final Runnable HANDLER_CACHED_OBJ_TASK;
 
     public DbServiceImpl() {
-        dbPoolSize = Integer.valueOf(DEFAULT_DB_THREADS);
-        dbPoolMaxSize = Integer.valueOf(DEFAULT_DB_THREADS * 2);
-        keepAliveTime = Integer.valueOf(Constants.ONE_MINUTE_SECOND * 10);
+        dispatcher = DispatcherFactory.ringBufferDispatcher(DbServiceImpl.class, "缓存模块:入库线程池");
         entityBlockTime = Integer.valueOf(Constants.ONE_MINUTE_MILLISECOND);
         takeLock = new ReentrantLock();
         notEmpty = takeLock.newCondition();
-        CUSTOMER_TASK = new Runnable() {
-            public void run() {
-                try {
-                    for (;;) {
-                        Runnable task = DB_SAVER_QUEUE.take();
-                        if (task != null) {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("submit task.. QUEUE_SIZE:[{}] ",
-                                        Integer.valueOf(DB_SAVER_QUEUE.size()));
-                            }
-                            DB_POOL_SERVICE.submit(task);
-                        }
-                    }
-                } catch (Exception ex) {
-                    LOGGER.error("Error: {}", ex);
-                }
-            }
-        };
         HANDLER_CACHED_OBJ_TASK = new Runnable() {
             public void run() {
                 try {
@@ -145,44 +96,23 @@ public class DbServiceImpl implements DbService {
             }
         };
     }
-    
+
     /**
      * 初始化
      */
     @PostConstruct
     void initialize() {
-        NamedThreadFactory threadFactory = new NamedThreadFactory("缓存模块:入库线程池");
-        DB_POOL_SERVICE =
-                new ThreadPoolExecutor(dbPoolSize.intValue(), dbPoolMaxSize.intValue(),
-                        keepAliveTime.intValue(), TimeUnit.SECONDS,
-                        new LinkedBlockingQueue<Runnable>(), threadFactory);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Initialize DB Daemon Thread...");
         }
         NamedThreadFactory factory = new NamedThreadFactory("数据库入库Daemon线程", true);
-        Thread thread = factory.newThread(CUSTOMER_TASK);
-        thread.start();
-
         Thread pollCachedObjThread = factory.newThread(HANDLER_CACHED_OBJ_TASK);
         pollCachedObjThread.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHookRunnable()));
     }
-    
-    /**
-     * 服务停止
-     */
-    private class ShutdownHookRunnable implements Runnable {
-        private ShutdownHookRunnable() {}
-
-        public void run() {
-            workDone();
-        }
-    }
-    
 
     /**
      * 创建实体缓存持久化任务
+     * 
      * @param callback
      * @param entityCache
      * @return
@@ -194,18 +124,20 @@ public class DbServiceImpl implements DbService {
             }
         };
     }
-    
+
     /**
      * 提交实体缓存持久化任务
+     * 
      * @param callback
      * @param entityCache
      */
     private void add2Queue(DbCallback callback, EntityCache entityCache) {
-        DB_SAVER_QUEUE.add(createTask(null, entityCache));
+        dispatcher.execute(createTask(null, entityCache));
     }
-    
+
     /**
      * 处理实体缓存持久化任务
+     * 
      * @param callback 回调
      * @param entityCache 实体对象缓存数据
      * @param removeFromSubmitCache
@@ -238,7 +170,7 @@ public class DbServiceImpl implements DbService {
             }
         }
     }
-    
+
     /**
      * 提交实体持久化任务异步处理
      */
@@ -249,7 +181,8 @@ public class DbServiceImpl implements DbService {
         if (DB_OBJECT_MAP.isEmpty()) {
             return;
         }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
+        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet =
+                new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
         synchronized (DB_OBJECT_MAP) {
             objSet.putAll(DB_OBJECT_MAP);
             DB_OBJECT_MAP.clear();
@@ -259,7 +192,7 @@ public class DbServiceImpl implements DbService {
             Object key = iterator.next();
             Set<BaseModel<?>> set = objSet.get(key);
             if ((set != null) && (set.size() > 0)) {
-                DB_SAVER_QUEUE.add(createTask(null, new EntityCache(new Object[] {set})));
+                dispatcher.execute(createTask(null, new EntityCache(new Object[] {set})));
             }
         }
     }
@@ -271,7 +204,8 @@ public class DbServiceImpl implements DbService {
         if (DB_OBJECT_MAP.isEmpty()) {
             return;
         }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet = new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
+        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet =
+                new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
         synchronized (DB_OBJECT_MAP) {
             objSet.putAll(DB_OBJECT_MAP);
             DB_OBJECT_MAP.clear();
@@ -285,15 +219,16 @@ public class DbServiceImpl implements DbService {
                         maxSize % subCount == 0 ? maxSize / subCount : maxSize / subCount + 1;
                 for (int index = 0; index < maxCount; index++) {
                     List<BaseModel<?>> subList =
-                            CollectionUtility.subListCopy(list, subCount * index, subCount);
+                            CollectionUtils.subListCopy(list, subCount * index, subCount);
                     updateEntityIntime(new Object[] {subList});
                 }
             }
         }
     }
-    
+
     /**
      * 添加实体到持久化集合
+     * 
      * @param entities
      */
     private void put2ObjectMap(Collection<BaseModel<?>> entities) {
@@ -304,6 +239,7 @@ public class DbServiceImpl implements DbService {
 
     /**
      * 添加实体到持久化集合
+     * 
      * @param entity
      */
     private void put2ObjectMap(BaseModel<?> entity) {
@@ -316,7 +252,7 @@ public class DbServiceImpl implements DbService {
         }
         objs.add(entity);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> void submitUpdate2Queue(T... entities) {
@@ -355,10 +291,9 @@ public class DbServiceImpl implements DbService {
         }
         return false;
     }
-    
+
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-        submitCachedDbObject();
         workDone();
     }
 
@@ -366,8 +301,8 @@ public class DbServiceImpl implements DbService {
      * 服务停止处理
      */
     public void workDone() {
-        while (DB_POOL_SERVICE != null) {
-            if (DB_POOL_SERVICE.isShutdown()) {
+        while (dispatcher != null) {
+            if (!dispatcher.alive()) {
                 break;
             }
             if (!DB_OBJECT_MAP.isEmpty()) {
@@ -378,13 +313,11 @@ public class DbServiceImpl implements DbService {
             } catch (InterruptedException e) {
                 LOGGER.error("{}", e);
             }
-            if (DB_SAVER_QUEUE.isEmpty()) {
-                ThreadPoolUtils.shutdownGraceful(DB_POOL_SERVICE,
-                        Constants.ONE_MINUTE_MILLISECOND * 5);
-            }
+            dispatcher
+                    .awaitAndShutdown(Constants.ONE_MINUTE_MILLISECOND * 5, TimeUnit.MILLISECONDS);
         }
     }
-    
+
     /**
      * 实体缓存
      */
@@ -400,6 +333,7 @@ public class DbServiceImpl implements DbService {
 
         /**
          * 获取实体集合
+         * 
          * @return
          */
         public Collection<BaseModel<?>> getEntities() {
@@ -408,6 +342,7 @@ public class DbServiceImpl implements DbService {
 
         /**
          * 获取尝试次数
+         * 
          * @return
          */
         public int getRetryCount() {
@@ -422,11 +357,12 @@ public class DbServiceImpl implements DbService {
             this.entities = getBaseModelList(new Object[] {entities});
         }
     }
-    
+
 
     /**
      * 获取可持久化的实体集合
-     * @param entities 
+     * 
+     * @param entities
      * @return
      */
     @SuppressWarnings("unchecked")

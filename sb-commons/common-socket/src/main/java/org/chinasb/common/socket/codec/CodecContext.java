@@ -4,11 +4,12 @@ import java.io.Serializable;
 
 /**
  * 编解码上下文信息
+ * 
  * @author zhujuan
  *
  */
 public class CodecContext implements Serializable {
-    private static final long serialVersionUID = 6854482880025646879L;
+    private static final long serialVersionUID = 1L;
     /**
      * 数据包所需字节数量
      */
@@ -20,6 +21,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 获取数据包所需字节数量
+     * 
      * @return
      */
     public int getBytesNeeded() {
@@ -28,6 +30,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 设置数据包所需字节数量
+     * 
      * @param bytesNeeded
      */
     public void setBytesNeeded(int bytesNeeded) {
@@ -36,6 +39,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 获取解码状态
+     * 
      * @return
      */
     public DecoderState getState() {
@@ -44,6 +48,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 设置解码状态
+     * 
      * @param state
      */
     public void setState(DecoderState state) {
@@ -52,6 +57,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 比较解码状态是否相同
+     * 
      * @param state
      * @return
      */
@@ -61,6 +67,7 @@ public class CodecContext implements Serializable {
 
     /**
      * 返回一个新的编解码上下文对象
+     * 
      * @param byteNeeded 数据包所需字节数量
      * @param state 解码状态
      * @return

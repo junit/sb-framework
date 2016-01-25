@@ -10,6 +10,7 @@ import com.google.common.base.Strings;
 
 /**
  * 表达式帮助类
+ * 
  * @author zhujuan
  */
 public class RhinoHelper {
@@ -17,6 +18,7 @@ public class RhinoHelper {
 
     /**
      * 执行表达式
+     * 
      * @param expression
      * @param context
      * @return
@@ -32,9 +34,10 @@ public class RhinoHelper {
         }
         return null;
     }
-    
+
     /**
      * 执行逻辑表达式
+     * 
      * @param expression
      * @param ctx
      * @return
@@ -46,6 +49,7 @@ public class RhinoHelper {
 
     /**
      * 执行数值表达式
+     * 
      * @param expression
      * @param numbers
      * @return

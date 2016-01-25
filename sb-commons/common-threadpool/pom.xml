@@ -24,5 +24,9 @@
 			<artifactId>common-utility</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.projectreactor.spring</groupId>
+			<artifactId>reactor-spring-context</artifactId>
+		</dependency>		
 	</dependencies>
 </project>

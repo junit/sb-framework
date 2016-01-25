@@ -2,6 +2,7 @@ package org.chinasb.common.socket.codec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
@@ -13,13 +14,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.message.Response;
 import org.chinasb.common.socket.type.ResponseCode;
+import org.springframework.stereotype.Component;
 
 /**
  * 消息编码器
+ * 
  * @author zhujuan
  *
  */
+@Sharable
+@Component
 public class ResponseEncoder extends MessageToByteEncoder<Object> {
+
     private static final Log LOGGER = LogFactory.getLog(RequestDecoder.class);
 
     @Override
@@ -27,6 +33,7 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
         if (message == null) {
             return;
         }
+
         if ((message instanceof ByteBuf)) {
             out.writeBytes((ByteBuf) message);
         } else if ((message instanceof byte[])) {
@@ -42,6 +49,7 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
 
     /**
      * 消息编码
+     * 
      * @param message 消息对象
      * @return
      */
@@ -51,6 +59,7 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
 
     /**
      * 消息编码
+     * 
      * @param bytes 消息字节数据
      * @return
      */
@@ -68,6 +77,7 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
 
     /**
      * 消息编码
+     * 
      * @param message 消息对象
      * @return
      */
@@ -82,7 +92,7 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
                 int messageType = response.getMessageType();
                 int module = response.getModule();
                 int cmd = response.getCmd();
-                
+
                 dataOutputStream.writeInt(sn);
                 dataOutputStream.writeInt(messageType);
                 dataOutputStream.writeInt(module);
@@ -125,14 +135,12 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
 
     /**
      * 转换消息字节数据
+     * 
      * @param messageType 消息类型
      * @param obj 消息内容
      * @return
      */
     protected byte[] transferByteArray(int messageType, Object obj) {
-        if (messageType == MessageType.STRING.ordinal()) {
-            return ((String)obj).getBytes();
-        }
         if (messageType == MessageType.AMF3.ordinal()) {
             return ObjectCodec.asObject2ByteArray(obj);
         }

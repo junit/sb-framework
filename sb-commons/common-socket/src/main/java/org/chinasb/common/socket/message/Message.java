@@ -5,26 +5,27 @@ import java.io.Serializable;
 import org.chinasb.common.socket.codec.MessageType;
 
 /**
- * 消息抽象
+ * 消息对象
+ * 
  * @author zhujuan
  *
  */
+@SuppressWarnings("serial")
 public abstract class Message implements Serializable {
-    private static final long serialVersionUID = 8883352360594899581L;
 
     /**
-     * 默认消息序列号
+     * 默认消息流水号
      */
     public static final int DEFAULT_SN = -1;
 
     /**
-     * 消息序列号
+     * 消息流水号
      */
     private int sn = DEFAULT_SN;
     /**
      * 消息编码类型
      */
-    private int messageType = MessageType.STRING.ordinal();
+    private int messageType = MessageType.AMF3.ordinal();
     /**
      * 功能模块
      */
@@ -43,7 +44,8 @@ public abstract class Message implements Serializable {
     private Object value;
 
     /**
-     * 获取消息序列号
+     * 获取消息流水号
+     * 
      * @return
      */
     public int getSn() {
@@ -51,7 +53,8 @@ public abstract class Message implements Serializable {
     }
 
     /**
-     * 设置消息序列号
+     * 设置消息流水号
+     * 
      * @param sn
      */
     public void setSn(int sn) {
@@ -60,6 +63,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 获取消息类型
+     * 
      * @return
      */
     public int getMessageType() {
@@ -68,6 +72,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 设置消息类型
+     * 
      * @param messageType
      */
     public void setMessageType(int messageType) {
@@ -76,6 +81,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 获取功能模块
+     * 
      * @return
      */
     public int getModule() {
@@ -84,6 +90,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 设置功能模块
+     * 
      * @param module
      */
     public void setModule(int module) {
@@ -92,6 +99,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 获取模块指令
+     * 
      * @return
      */
     public int getCmd() {
@@ -100,6 +108,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 设置模块指令
+     * 
      * @param cmd
      */
     public void setCmd(int cmd) {
@@ -108,6 +117,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 获取消息时间
+     * 
      * @return
      */
     public long getTime() {
@@ -116,6 +126,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 设置消息时间
+     * 
      * @param time
      */
     public void setTime(long time) {
@@ -124,6 +135,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 获取消息内容
+     * 
      * @return
      */
     public Object getValue() {
@@ -132,6 +144,7 @@ public abstract class Message implements Serializable {
 
     /**
      * 设置消息内容
+     * 
      * @param value
      */
     public void setValue(Object value) {

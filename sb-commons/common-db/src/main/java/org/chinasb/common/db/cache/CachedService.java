@@ -2,11 +2,13 @@ package org.chinasb.common.db.cache;
 
 /**
  * 缓存服务接口
+ * 
  * @author zhujuan
  */
 public interface CachedService {
     /**
      * 添加实体缓存
+     * 
      * @param key
      * @param value
      * @return
@@ -15,6 +17,7 @@ public interface CachedService {
 
     /**
      * 添加实体缓存
+     * 
      * @param key
      * @param value
      * @param timeToLive 存活时间
@@ -24,6 +27,7 @@ public interface CachedService {
 
     /**
      * 获取实体缓存
+     * 
      * @param key
      * @return
      */
@@ -31,12 +35,14 @@ public interface CachedService {
 
     /**
      * 移除实体缓存
+     * 
      * @param key
      */
     void removeFromEntityCache(String key);
 
     /**
      * 添加通用缓存（覆盖模式）
+     * 
      * @param key
      * @param value
      */
@@ -44,14 +50,16 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（覆盖模式）
+     * 
      * @param key
      * @param value
      * @param timeToLive 存活时间
      */
     void put2CommonCache(String key, Object value, long timeToLive);
-    
+
     /**
      * 添加通用缓存（put-if-absent模式）
+     * 
      * @param key
      * @param value
      * @return
@@ -60,6 +68,7 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（put-if-absent模式）
+     * 
      * @param key
      * @param value
      * @param timeToLive 存活时间
@@ -69,6 +78,7 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（覆盖模式）
+     * 
      * @param hashKey
      * @param subKey
      * @param value
@@ -77,6 +87,7 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（覆盖模式）
+     * 
      * @param hashKey
      * @param subKey
      * @param value
@@ -86,6 +97,7 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（put-if-absent模式）
+     * 
      * @param hashKey
      * @param subKey
      * @param value
@@ -95,17 +107,18 @@ public interface CachedService {
 
     /**
      * 添加通用缓存（put-if-absent模式）
+     * 
      * @param hashKey
      * @param subKey
      * @param value
      * @param timeToLive 存活时间
      * @return
      */
-    Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object value,
-            long timeToLive);
+    Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object value, long timeToLive);
 
     /**
      * 获取通用缓存
+     * 
      * @param key
      * @return
      */
@@ -113,6 +126,7 @@ public interface CachedService {
 
     /**
      * 获取通用缓存
+     * 
      * @param hashKey
      * @param subKey
      * @return
@@ -121,12 +135,14 @@ public interface CachedService {
 
     /**
      * 移除通用缓存
+     * 
      * @param key
      */
     void removeFromCommonCache(String key);
 
     /**
      * 移除通用缓存
+     * 
      * @param hashKey
      * @param subKey
      */
@@ -134,6 +150,7 @@ public interface CachedService {
 
     /**
      * 清除过期缓存
+     * 
      * @param clearInValidCommonCache 是否清除通用缓存标志{true：清除, false:忽略}
      */
     void clearInValidateCacheObject(boolean clearInValidCommonCache);

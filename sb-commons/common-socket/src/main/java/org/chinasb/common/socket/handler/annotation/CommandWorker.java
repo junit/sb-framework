@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 功能模块注解
+ * 指令工作器注解
+ * 
  * @author zhujuan
  *
  */
@@ -15,12 +16,15 @@ import java.lang.annotation.Target;
 public @interface CommandWorker {
     /**
      * 模块标识
+     * 
      * @return
      */
     int module();
+
     /**
      * 模块描述
+     * 
      * @return
      */
-	String description() default "";
+    String description() default "";
 }

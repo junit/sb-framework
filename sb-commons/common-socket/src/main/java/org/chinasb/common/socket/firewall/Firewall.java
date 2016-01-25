@@ -12,13 +12,15 @@ import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.SessionManager;
 import org.chinasb.common.socket.config.ServerConfig;
 import org.chinasb.common.socket.type.SessionType;
-import org.chinasb.common.utility.StringUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 /**
  * 防火墙
+ * 
  * @author zhujuan
  *
  */
@@ -100,22 +102,27 @@ public class Firewall {
     /**
      * 封锁的IP列表
      */
-    private static ConcurrentHashMap<String, Long> BLOCKED_IPS = new ConcurrentHashMap<String, Long>(1);
+    private static ConcurrentHashMap<String, Long> BLOCKED_IPS =
+            new ConcurrentHashMap<String, Long>(1);
     /**
      * 封锁的玩家列表
      */
-    private static ConcurrentHashMap<Long, Long> BLOCKED_PLAYER_IDS = new ConcurrentHashMap<Long, Long>(1);
+    private static ConcurrentHashMap<Long, Long> BLOCKED_PLAYER_IDS =
+            new ConcurrentHashMap<Long, Long>(1);
     /**
      * 可疑IP列表
      */
-    private static ConcurrentHashMap<String, AtomicInteger> SUSPICIOUS_IPS = new ConcurrentHashMap<String, AtomicInteger>(1);
+    private static ConcurrentHashMap<String, AtomicInteger> SUSPICIOUS_IPS =
+            new ConcurrentHashMap<String, AtomicInteger>(1);
     /**
      * 可疑玩家列表
      */
-    private static ConcurrentHashMap<Long, AtomicInteger> SUSPICIOUS_PLAYERIDS = new ConcurrentHashMap<Long, AtomicInteger>(1);
+    private static ConcurrentHashMap<Long, AtomicInteger> SUSPICIOUS_PLAYERIDS =
+            new ConcurrentHashMap<Long, AtomicInteger>(1);
 
     /**
      * 获取客户端数量
+     * 
      * @return
      */
     public int getClients() {
@@ -124,6 +131,7 @@ public class Firewall {
 
     /**
      * 客户端数量计数增加1
+     * 
      * @return
      */
     public int increaseClients() {
@@ -132,6 +140,7 @@ public class Firewall {
 
     /**
      * 客户端数量计数减少1
+     * 
      * @return
      */
     public int decreaseClients() {
@@ -140,6 +149,7 @@ public class Firewall {
 
     /**
      * 当前客户端是否超过连接数量限制
+     * 
      * @param currClients
      * @return
      */
@@ -149,6 +159,7 @@ public class Firewall {
 
     /**
      * 当前客户端是否超过活动数量限制
+     * 
      * @param currClients
      * @return
      */
@@ -158,6 +169,7 @@ public class Firewall {
 
     /**
      * 当前客户端是否超过活动数量限制
+     * 
      * @return
      */
     public boolean isMaxClientActive() {
@@ -165,7 +177,8 @@ public class Firewall {
     }
 
     /**
-     * 检测Session封锁状态d
+     * 检测Session封锁状态
+     * 
      * @param session
      * @return
      */
@@ -175,12 +188,13 @@ public class Firewall {
 
     /**
      * 检测Session的IP封锁状态
+     * 
      * @param session
      * @return
      */
     private boolean isIpBlock(Channel session) {
         String remoteIp = sessionManager.getRemoteIp(session);
-        if (StringUtility.isBlank(remoteIp)) {
+        if (Strings.isNullOrEmpty(remoteIp)) {
             return false;
         }
         Long blockedTime = (Long) BLOCKED_IPS.get(remoteIp);
@@ -196,6 +210,7 @@ public class Firewall {
 
     /**
      * 检测Session的用户封锁状态
+     * 
      * @param session
      * @return
      */
@@ -214,25 +229,28 @@ public class Firewall {
 
     /**
      * 封锁IP
+     * 
      * @param ip
      */
     public void blockIp(String ip) {
         long currentTimeMillis = System.currentTimeMillis();
         int blockIpMillis = getBlockIpMinutesOfMilliSecond();
-        BLOCKED_IPS.put(StringUtility.isBlank(ip) ? "" : ip,
+        BLOCKED_IPS.put(Strings.isNullOrEmpty(ip) ? "" : ip,
                 Long.valueOf(currentTimeMillis + blockIpMillis));
     }
 
     /**
      * 解锁IP
+     * 
      * @param remoteIp
      */
     public void unblockIp(String remoteIp) {
-        BLOCKED_IPS.remove(StringUtility.isBlank(remoteIp) ? "" : remoteIp);
+        BLOCKED_IPS.remove(Strings.isNullOrEmpty(remoteIp) ? "" : remoteIp);
     }
 
     /**
      * 封锁玩家
+     * 
      * @param playerId
      */
     public void blockPlayer(long playerId) {
@@ -243,6 +261,7 @@ public class Firewall {
 
     /**
      * 解锁玩家
+     * 
      * @param playerId
      */
     public void unblockPlayer(long playerId) {
@@ -251,6 +270,7 @@ public class Firewall {
 
     /**
      * 封锁类型
+     * 
      * @author zhujuan
      *
      */
@@ -271,6 +291,7 @@ public class Firewall {
 
     /**
      * 检测消息流量限制是否超标并达到封锁条件
+     * 
      * @param session
      * @param bytes 本次消息流量的增量
      * @return
@@ -281,6 +302,7 @@ public class Firewall {
 
     /**
      * 检测消息数量限制是否超标并达到封锁条件
+     * 
      * @param session
      * @param packs 本次消息数量的增量
      * @return
@@ -291,6 +313,7 @@ public class Firewall {
 
     /**
      * 检测校验错误次数限制是否超标并达到封锁条件
+     * 
      * @param session
      * @param errors 本次校验错误次数的增量
      * @return
@@ -301,6 +324,7 @@ public class Firewall {
 
     /**
      * 检测防火墙类型限制是否超标并达到封锁条件
+     * 
      * @param session
      * @param type 防火墙类型
      * @param amount 防火墙相关类型的数据增量
@@ -329,7 +353,7 @@ public class Firewall {
         } else if (type == FirewallType.AUTH_CODE) {
             suspicious = avalidateWithAuthcode(amount, floodCheck);
         }
-        boolean isBlack = false;
+        boolean isBlock = false;
         if (suspicious) {
             String remoteIp = sessionManager.getRemoteIp(session);
             Long playerId = sessionManager.getPlayerId(session);
@@ -341,7 +365,7 @@ public class Firewall {
                 }
                 if (blocks.incrementAndGet() >= blockDetectCount.intValue()) {
                     blocks.set(0);
-                    isBlack = true;
+                    isBlock = true;
                     blockIp(remoteIp);
                 }
             } else {
@@ -352,7 +376,7 @@ public class Firewall {
                 }
                 if (blocks.incrementAndGet() >= blockDetectCount.intValue()) {
                     blocks.set(0);
-                    isBlack = true;
+                    isBlock = true;
                     blockPlayer(playerId.longValue());
                 }
             }
@@ -361,13 +385,14 @@ public class Firewall {
                     "ip: %s, playerId: %d, block: %s",
                     new Object[] {remoteIp,
                             Long.valueOf(playerId == null ? 0L : playerId.longValue()),
-                            String.valueOf(isBlack)}));
+                            String.valueOf(isBlock)}));
         }
-        return isBlack;
+        return isBlock;
     }
 
     /**
      * 删除可疑行为的侦测记录
+     * 
      * @param session
      */
     public void removeBlockCounter(Channel session) {
@@ -383,6 +408,7 @@ public class Firewall {
 
     /**
      * 检测校验码错误数次是否溢出
+     * 
      * @param amount 本次数据增量
      * @param floodCheck
      * @return
@@ -430,6 +456,7 @@ public class Firewall {
 
     /**
      * 检测消息数量是否溢出
+     * 
      * @param amount 本次数据增量
      * @param floodCheck
      * @return
@@ -475,6 +502,7 @@ public class Firewall {
 
     /**
      * 检测消息流量是否溢出
+     * 
      * @param amount 本次数据增量
      * @param floodCheck
      * @return
@@ -520,6 +548,7 @@ public class Firewall {
 
     /**
      * 获取客户端连接类型
+     * 
      * @param session
      * @return
      */
@@ -528,7 +557,7 @@ public class Firewall {
         if (clientType == null) {
             clientType = ClientType.ANONYMOUS;
             String remoteIp = sessionManager.getRemoteIp(session);
-            if ((!StringUtility.isBlank(remoteIp)) && (ServerConfig.isAllowMisIp(remoteIp))) {
+            if ((!Strings.isNullOrEmpty(remoteIp)) && (ServerConfig.isAllowMisIp(remoteIp))) {
                 clientType = ClientType.MIS;
             }
         }
@@ -544,6 +573,7 @@ public class Firewall {
 
     /**
      * 获取每秒钟最大消息包数量限制
+     * 
      * @return
      */
     public int getMaxPacksPerSecond() {
@@ -552,6 +582,7 @@ public class Firewall {
 
     /**
      * 获取每分钟最大消息包数量限制
+     * 
      * @return
      */
     public int getMaxPacksPerMinute() {
@@ -560,6 +591,7 @@ public class Firewall {
 
     /**
      * 获取每秒钟最大消息包流量限制
+     * 
      * @return
      */
     public int getMaxBytesPerSecond() {
@@ -568,6 +600,7 @@ public class Firewall {
 
     /**
      * 获取每分钟最大消息包流量限制
+     * 
      * @return
      */
     public int getMaxBytesPerMinute() {
@@ -576,6 +609,7 @@ public class Firewall {
 
     /**
      * 获取每秒钟最大消息校验失败次数
+     * 
      * @return
      */
     public int getMaxAuthCodeErrorsPerSecond() {
@@ -584,6 +618,7 @@ public class Firewall {
 
     /**
      * 获取每分钟最大消息校验失败次数
+     * 
      * @return
      */
     public int getMaxAuthCodeErrorsPerMinute() {
@@ -592,6 +627,7 @@ public class Firewall {
 
     /**
      * 获取可疑活动行为侦测次数限制
+     * 
      * @return
      */
     public int getBlockDetectCount() {
@@ -600,6 +636,7 @@ public class Firewall {
 
     /**
      * 获取封锁IP时间(毫秒)
+     * 
      * @return
      */
     public int getBlockIpMinutesOfMilliSecond() {
@@ -608,6 +645,7 @@ public class Firewall {
 
     /**
      * 获取封锁IP时间(秒)
+     * 
      * @return
      */
     public int getBlockMinutesOfMilliSecond() {
@@ -616,6 +654,7 @@ public class Firewall {
 
     /**
      * 获取客户端连接数量限制
+     * 
      * @return
      */
     public int getMaxClientsLimit() {
@@ -624,12 +663,13 @@ public class Firewall {
 
     /**
      * 获取客户端活动数量限制
+     * 
      * @return
      */
     public int getMaxClientsActives() {
         return maxClientsActives.intValue();
     }
-    
+
     @PostConstruct
     protected void initialize() {
         LOGGER.error(String.format("防火墙允许的活动客户端数量: %d", new Object[] {maxClientsActives}));

@@ -6,6 +6,7 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * 锁链
+ * 
  * @author zhujuan
  */
 public class ChainLock {
@@ -15,6 +16,7 @@ public class ChainLock {
 
     /**
      * 初始化锁链
+     * 
      * @param locks
      */
     public ChainLock(List<? extends Lock> locks) {
@@ -62,6 +64,7 @@ public class ChainLock {
 
     /**
      * 解锁
+     * 
      * @param end 位置
      */
     private void unlock(int end) {
@@ -72,7 +75,8 @@ public class ChainLock {
                 if (objectLock != null) {
                     objectLock.unlock();
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
     }
 }

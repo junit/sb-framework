@@ -23,13 +23,14 @@ import org.springframework.util.ResourceUtils;
 
 /**
  * 基础数据存储
+ * 
  * @author zhujuan
  * @param <V>
  */
 public class Storage<V> {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Storage.class);
-    
+
     private final ApplicationContext applicationContext;
     /**
      * 基础数据类对象
@@ -70,6 +71,7 @@ public class Storage<V> {
 
     /**
      * 构建基础数据存储对象
+     * 
      * @param clazz
      * @param resourceLocation
      * @param applicationContext
@@ -81,15 +83,16 @@ public class Storage<V> {
         Resource resource = (Resource) clazz.getAnnotation(Resource.class);
         this.location = (this.resourceLocation + clazz.getSimpleName() + "." + resource.suffix());
         ResourceReader reader =
-                (ResourceReader) this.applicationContext.getBean(resource.type() + "ResourceReader",
-                        ResourceReader.class);
+                (ResourceReader) this.applicationContext.getBean(
+                        resource.type() + "ResourceReader", ResourceReader.class);
         this.reader = reader;
         identifier = GetterBuilder.createIdGetter(clazz);
         indexVisitors = IndexBuilder.createIndexVisitors(clazz);
     }
-    
+
     /**
      * 获取基础数据映射集合
+     * 
      * @return
      */
     public Map<Object, V> getDataTable() {
@@ -98,6 +101,7 @@ public class Storage<V> {
 
     /**
      * 获取索引映射集合
+     * 
      * @return
      */
     public Map<String, List<Object>> getIndexTable() {
@@ -106,14 +110,16 @@ public class Storage<V> {
 
     /**
      * 获取基础数据ID列表
+     * 
      * @return
      */
     public List<Object> getIdList() {
         return Collections.unmodifiableList(idList);
     }
-    
+
     /**
      * 通过索引获取基础数据列表
+     * 
      * @param indexName 索引名称
      * @param indexValues 索引值
      * @return
@@ -125,6 +131,7 @@ public class Storage<V> {
 
     /**
      * 获取索引ID列表
+     * 
      * @param indexName 索引名称
      * @param indexValues 索引值
      * @return
@@ -136,6 +143,7 @@ public class Storage<V> {
 
     /**
      * 获取基础数据
+     * 
      * @param key ID
      * @return
      */
@@ -145,6 +153,7 @@ public class Storage<V> {
 
     /**
      * 获取基础数据列表
+     * 
      * @param idList ID列表
      * @return
      */
@@ -163,6 +172,7 @@ public class Storage<V> {
 
     /**
      * 获取全部基础数据列表
+     * 
      * @return
      */
     public List<V> listAll() {
@@ -230,6 +240,7 @@ public class Storage<V> {
 
     /**
      * 获取索引键值(类名&索引名称#索引值1^索引值2)
+     * 
      * @param name 索引名称
      * @param value 索引值
      * @return
@@ -240,6 +251,7 @@ public class Storage<V> {
 
     /**
      * 添加基础数据
+     * 
      * @param value 基础数据
      * @param dataTable 基础数据集合
      * @return
@@ -252,6 +264,7 @@ public class Storage<V> {
 
     /**
      * 索引基础数据
+     * 
      * @param value 基础数据
      * @param indexTable 索引集合
      */
@@ -266,6 +279,7 @@ public class Storage<V> {
 
     /**
      * 索引基础数据
+     * 
      * @param indexKey 索引字段值域的组合键值
      * @param value 基础数据
      * @param indexTable 索引集合
@@ -279,9 +293,10 @@ public class Storage<V> {
         Object id = identifier.getValue(value);
         idList.add(id);
     }
-    
+
     /**
      * 排序
+     * 
      * @param idList ID列表
      * @param indexTable 索引集合
      * @param dataTable 基础数据集合

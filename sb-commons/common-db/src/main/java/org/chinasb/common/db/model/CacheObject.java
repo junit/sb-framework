@@ -1,9 +1,10 @@
 package org.chinasb.common.db.model;
 
-import org.chinasb.common.Constants;
+import org.chinasb.common.utility.Constants;
 
 /**
  * 缓存对象
+ * 
  * @author zhujuan
  */
 public class CacheObject {
@@ -26,6 +27,7 @@ public class CacheObject {
 
     /**
      * 将普通对象转换为缓存对象
+     * 
      * @param value 普通对象
      * @return {@link CacheObject}
      */
@@ -37,9 +39,10 @@ public class CacheObject {
         cacheObject.expireTime = (cacheObject.createTime + cacheObject.ttl);
         return cacheObject;
     }
-    
+
     /**
      * 将普通对象转换为缓存对象
+     * 
      * @param value 普通对象
      * @param timeToLive 存活时间
      * @return {@link CacheObject}
@@ -55,6 +58,7 @@ public class CacheObject {
 
     /**
      * 检查缓存对象的有效性
+     * 
      * @return true: 有效; false: 无效
      */
     public boolean isValidate() {
@@ -63,6 +67,7 @@ public class CacheObject {
 
     /**
      * 延长缓存对象的过期时间
+     * 
      * @param addExpireTime
      */
     public void increaseExpireTime(int addExpireTime) {
@@ -73,6 +78,7 @@ public class CacheObject {
 
     /**
      * 获取缓存的实体
+     * 
      * @return
      */
     public Object getValue() {
@@ -81,6 +87,7 @@ public class CacheObject {
 
     /**
      * 获取缓存的存活时间
+     * 
      * @return
      */
     public long getTtl() {
@@ -89,6 +96,7 @@ public class CacheObject {
 
     /**
      * 获取缓存的创建时间
+     * 
      * @return
      */
     public long getCreateTime() {
@@ -97,6 +105,7 @@ public class CacheObject {
 
     /**
      * 获取缓存的过期时间
+     * 
      * @return
      */
     public long getExpireTime() {

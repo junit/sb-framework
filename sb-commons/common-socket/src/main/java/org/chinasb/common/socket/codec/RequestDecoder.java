@@ -18,23 +18,37 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.SessionManager;
-import org.chinasb.common.socket.context.ApplicationContext;
 import org.chinasb.common.socket.firewall.ClientType;
 import org.chinasb.common.socket.firewall.Firewall;
 import org.chinasb.common.socket.message.Request;
 import org.chinasb.common.socket.message.Response;
 import org.chinasb.common.socket.type.ResponseCode;
 import org.chinasb.common.socket.type.SessionType;
-import org.chinasb.common.utility.HashUtility;
+import org.chinasb.common.utility.HashUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
+ * <p>
  * 消息解码器
- * Packet = [short]PacketHeader(2 bytes) + [int]BodyLength(4 bytes) + [bytes]PacketBody(n bytes)
- * PacketBody: DataHeader{[int]authCode(4 bytes) + [int]sn(4 bytes) + [byte]messageType(1 byte) +
- * [int]module(4 bytes) + [int]cmd(4 bytes)}(20 bytes) + [bytes]DataBody(n bytes)
+ * </p>
+ * <p>
+ * Packet = [byte]PacketHeader(6 byte) + [bytes]PacketBody(n bytes)
+ * </p>
+ * <p>
+ * PacketHeader: [short]PacketFlag(2 bytes) + [int]PacketBodyLength(4 bytes)
+ * </p>
+ * <p>
+ * PacketBody: [int]authCode(4 bytes) + [int]sn(4 bytes) + [byte]messageType(1 byte) + [int]module(4
+ * bytes) + [int]cmd(4 bytes)}(20 bytes) + [bytes]data(n bytes)
+ * </p>
+ * 
  * @author zhujuan
  *
  */
+@Component
+@Scope("prototype")
 public class RequestDecoder extends ByteToMessageDecoder {
 
     private static final Log LOGGER = LogFactory.getLog(RequestDecoder.class);
@@ -62,11 +76,18 @@ public class RequestDecoder extends ByteToMessageDecoder {
     /**
      * SOCKET安全策略请求
      */
-    private final byte[] POLICY_REQUEST = "<policy-file-request/>".getBytes(charset);
+    public static final byte[] POLICY_REQUEST = "<policy-file-request/>".getBytes(charset);
     /**
      * SOCKET安全策略内容
      */
-    public static final byte[] policyResponse = "".getBytes(charset);
+    public static final byte[] policyResponse =
+            "<?xml version=\"1.0\"?><cross-domain-policy><site-control permitted-cross-domain-policies=\"all\"/><allow-access-from domain=\"*\" to-ports=\"*\"/></cross-domain-policy>\0"
+                    .getBytes(charset);
+
+    @Autowired
+    private Firewall firewall;
+    @Autowired
+    private SessionManager sessionManager;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -167,6 +188,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
 
     /**
      * 解码数据包
+     * 
      * @param buffer
      * @param ctx
      * @return
@@ -193,7 +215,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
             byte messageType = dataInputStream.readByte();
             int module = dataInputStream.readInt();
             int cmd = dataInputStream.readInt();
-            int calcAuthCode = (int) HashUtility.fnv32(authData, 0, authData.length);
+            int calcAuthCode = (int) HashUtils.fnv32(authData, 0, authData.length);
             if (authCode != calcAuthCode) {
                 Channel session = ctx.channel();
                 LOGGER.error(String
@@ -201,20 +223,14 @@ public class RequestDecoder extends ByteToMessageDecoder {
                                 new Object[] {Integer.valueOf(sn), Integer.valueOf(module),
                                         Integer.valueOf(cmd), Integer.valueOf(authCode),
                                         Integer.valueOf(calcAuthCode)}));
-                ChannelFuture future = session.writeAndFlush(Response.valueOf(sn, module, cmd, messageType,
-                        ResponseCode.RESPONSE_CODE_AUTH_CODE_ERROR));
-                ApplicationContext context = ctx.attr(SessionType.APPLICATION_CONTEXT_KEY).get();
-                if (context != null) {
-                    Firewall firewall = context.getBean(Firewall.class);
-                    if ((firewall.getClientType(session) != ClientType.MIS)
-                            && (firewall.blockedByAuthCodeErrors(session, 1))) {
-                        SessionManager sessionManager = context.getBean(SessionManager.class);
-                        if (sessionManager != null) {
-                            String ip = sessionManager.getRemoteIp(session);
-                            LOGGER.error(String.format("In blacklist: [ip: %s]", new Object[] {ip}));
-                            future.addListener(ChannelFutureListener.CLOSE);
-                        }
-                    }
+                ChannelFuture future =
+                        session.writeAndFlush(Response.valueOf(sn, module, cmd, messageType,
+                                ResponseCode.RESPONSE_CODE_AUTH_CODE_ERROR));
+                if ((firewall.getClientType(session) != ClientType.MIS)
+                        && (firewall.blockedByAuthCodeErrors(session, 1))) {
+                    String ip = sessionManager.getRemoteIp(session);
+                    LOGGER.error(String.format("In blacklist: [ip: %s]", new Object[] {ip}));
+                    future.addListener(ChannelFutureListener.CLOSE);
                 }
                 return null;
             }
@@ -235,7 +251,9 @@ public class RequestDecoder extends ByteToMessageDecoder {
                 }
                 request.setValue(value);
             }
-            LOGGER.debug(request);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(request);
+            }
             return request;
         } catch (Exception ex) {
             LOGGER.error("解码异常: ", ex);
@@ -262,6 +280,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
 
     /**
      * 转换消息对象
+     * 
      * @param module 功能模块
      * @param cmd 模块指令
      * @param messageType 消息类型
@@ -269,14 +288,11 @@ public class RequestDecoder extends ByteToMessageDecoder {
      * @return
      */
     protected Object transferObject(int module, int cmd, int messageType, byte[] array) {
-        if (messageType == MessageType.STRING.ordinal()) {
-            return new String(array, charset);
+        if (messageType == MessageType.AMF3.ordinal()) {
+            return ObjectCodec.byteArray2ASObject(array);
         }
         if (messageType == MessageType.JAVA.ordinal()) {
             return ObjectCodec.byteArray2Object(array);
-        }
-        if (messageType == MessageType.AMF3.ordinal()) {
-            return ObjectCodec.byteArray2ASObject(array);
         }
         return null;
     }

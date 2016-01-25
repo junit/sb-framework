@@ -7,10 +7,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.PostConstruct;
 
-import org.chinasb.common.Constants;
 import org.chinasb.common.db.cache.CachedService;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.CacheObject;
+import org.chinasb.common.utility.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +23,7 @@ import com.google.common.collect.MapMaker;
 
 /**
  * 缓存服务
+ * 
  * @author zhujuan
  */
 @Service
@@ -30,7 +31,7 @@ public class CacheServiceImpl implements CachedService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheServiceImpl.class);
     private static final int ONE_MIN_MILISECONDS = Constants.ONE_MINUTE_MILLISECOND;
     private static final int MAX_EXTEND_MILISECONDS = Constants.ONE_MINUTE_MILLISECOND * 10;
-    
+
     /**
      * 通用缓存容量大小
      */
@@ -52,7 +53,7 @@ public class CacheServiceImpl implements CachedService {
 
     @Autowired
     private DbService dbService;
-    
+
     /**
      * 通用缓存
      */
@@ -61,7 +62,7 @@ public class CacheServiceImpl implements CachedService {
      * 实体缓存
      */
     private ConcurrentMap<String, CacheObject> ENTITY_CACHE;
-    
+
     /**
      * 构造器
      */
@@ -72,7 +73,7 @@ public class CacheServiceImpl implements CachedService {
         COMMON_CACHE = null;
         ENTITY_CACHE = null;
     }
-    
+
     /**
      * 缓存初始化
      */
@@ -103,8 +104,7 @@ public class CacheServiceImpl implements CachedService {
         if (timeToLive > 0L) {
             ENTITY_CACHE.putIfAbsent(key, CacheObject.valueOf(value, timeToLive));
         } else {
-            ENTITY_CACHE.putIfAbsent(key,
-                    CacheObject.valueOf(value, entityCacheTTL.intValue()));
+            ENTITY_CACHE.putIfAbsent(key, CacheObject.valueOf(value, entityCacheTTL.intValue()));
         }
         return getFromEntityCache(key);
     }
@@ -176,7 +176,7 @@ public class CacheServiceImpl implements CachedService {
             COMMON_CACHE.put(key, value);
         }
     }
-    
+
     @Override
     public Object put2CommonCacheIfAbsent(String key, Object value) {
         return put2CommonCacheIfAbsent(key, value, -1L);
@@ -240,7 +240,7 @@ public class CacheServiceImpl implements CachedService {
             cacheMap.put(subKey, value);
         }
     }
-    
+
     @Override
     public Object put2CommonHashCacheIfAbsent(String hashKey, String subKey, Object value) {
         return put2CommonHashCacheIfAbsent(hashKey, subKey, value, -1L);
@@ -254,7 +254,8 @@ public class CacheServiceImpl implements CachedService {
             return value;
         }
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("put2CommonHashCacheIfAbsent [hashKey: [{}], subKey: [{}], timeToLive: [{} ms]",
+            LOGGER.debug(
+                    "put2CommonHashCacheIfAbsent [hashKey: [{}], subKey: [{}], timeToLive: [{} ms]",
                     new Object[] {hashKey, subKey, Long.valueOf(timeToLive)});
         }
         Map<String, Object> cacheMap = null;

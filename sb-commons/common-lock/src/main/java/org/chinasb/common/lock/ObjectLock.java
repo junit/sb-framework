@@ -4,6 +4,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 对象锁<br/>
+ * 
  * <pre>
  * 排序顺序说明:
  * 1.非实体在前，实体{@link IEntity}在后
@@ -13,11 +14,13 @@ import java.util.concurrent.locks.ReentrantLock;
  * 5.<code>{@link ObjectLock#value}</code>对于非实体而言，为<code>System.identityHashCode(instance)</code>
  * 6.<code>{@link ObjectLock#value}</code>对于实体而言，为{@link IEntity#getIdentity()}
  * </pre>
+ * 
  * @author zhujuan
  */
 @SuppressWarnings("rawtypes")
 public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> {
-    private static final long serialVersionUID = 265250785740061308L;
+
+    private static final long serialVersionUID = 1L;
     private static final Class<IEntity> IENTITY_CLASS = IEntity.class;
     /**
      * 对象锁的类型
@@ -30,6 +33,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 构造一个对象实例的对象锁
+     * 
      * @param object
      */
     public ObjectLock(Object object) {
@@ -38,6 +42,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 构造一个对象实例的对象锁
+     * 
      * @param object
      * @param fair {@link ReentrantLock#isFair()}
      */
@@ -53,6 +58,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 加时锁检查（检查当前对象锁与指定对象锁是否可以保证获取顺序）
+     * 
      * @param other
      * @return
      */
@@ -61,7 +67,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
         if (this.clz != other.clz) {
             return false;
         }
-        if(this.value.compareTo(other.value) == 0) {
+        if (this.value.compareTo(other.value) == 0) {
             return true;
         }
         return false;
@@ -69,6 +75,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 获取对象锁的类型
+     * 
      * @return
      */
     public Class getClz() {
@@ -77,6 +84,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 获取对象锁的排序元素
+     * 
      * @return
      */
     public Comparable getValue() {
@@ -85,6 +93,7 @@ public class ObjectLock extends ReentrantLock implements Comparable<ObjectLock> 
 
     /**
      * 检查当前对象锁是否是实体的对象锁
+     * 
      * @return
      */
     public boolean isEntity() {

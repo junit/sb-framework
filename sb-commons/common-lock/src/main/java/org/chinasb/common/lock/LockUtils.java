@@ -9,6 +9,7 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * 锁工具类
+ * 
  * @author zhujuan
  */
 public class LockUtils {
@@ -17,6 +18,7 @@ public class LockUtils {
 
     /**
      * 获取对象实例的锁链
+     * 
      * @param objects
      * @return
      */
@@ -27,6 +29,7 @@ public class LockUtils {
 
     /**
      * 加载对象实例的对象锁，并对所有对象锁处理排序
+     * 
      * @param objects
      * @return
      */
@@ -39,7 +42,7 @@ public class LockUtils {
             }
         }
         Collections.sort(locks);
-        
+
         TreeSet<Integer> idx = new TreeSet<Integer>();
         Integer start = null;
         for (int i = 0; i < locks.size(); ++i) {
@@ -58,7 +61,7 @@ public class LockUtils {
         if (idx.isEmpty()) {
             return locks;
         }
-        
+
         List<Lock> newLocks = new ArrayList<Lock>(locks.size() + idx.size());
         newLocks.addAll(locks);
         Iterator<Integer> it = idx.descendingIterator();

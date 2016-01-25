@@ -9,15 +9,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.chinasb.common.Constants;
-
-/**
- * StringUtils
- * 
- * @author zhujuan
- */
-
-public final class StringUtility {
+public final class StringUtils {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
@@ -25,12 +17,6 @@ public final class StringUtility {
             .compile("([_.a-zA-Z0-9][-_.a-zA-Z0-9]*)[=](.*)"); // key value pair pattern.
 
     private static final Pattern INT_PATTERN = Pattern.compile("^\\d+$");
-
-    public static boolean isBlank(String str) {
-        if (str == null || str.length() == 0)
-            return true;
-        return false;
-    }
 
     /**
      * is empty string.
@@ -285,7 +271,7 @@ public final class StringUtility {
     }
 
     public static String getQueryStringValue(String qs, String key) {
-        Map<String, String> map = StringUtility.parseQueryString(qs);
+        Map<String, String> map = StringUtils.parseQueryString(qs);
         return map.get(key);
     }
 
@@ -345,5 +331,5 @@ public final class StringUtility {
         return buf == null ? camelName : buf.toString();
     }
 
-    private StringUtility() {}
+    private StringUtils() {}
 }

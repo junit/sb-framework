@@ -7,10 +7,12 @@ import org.mozilla.javascript.Scriptable;
 
 /**
  * Represents the scriptable object for Java object which implements the interface List
+ * 
  * @author zhujuan
  */
 public class NativeJavaList extends NativeJavaObject {
-    private static final long serialVersionUID = -8793924894604350264L;
+
+    private static final long serialVersionUID = 1L;
 
     public NativeJavaList() {}
 

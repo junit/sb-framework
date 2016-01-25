@@ -15,6 +15,7 @@ import flex.messaging.io.amf.Amf3Output;
 
 /**
  * 对象编解码
+ * 
  * @author zhujuan
  *
  */
@@ -24,6 +25,7 @@ public class ObjectCodec {
 
     /**
      * ByteArray -> ASObject
+     * 
      * @param buffer
      * @return
      */
@@ -58,6 +60,7 @@ public class ObjectCodec {
 
     /**
      * ASObject -> ByteArray
+     * 
      * @param obj
      * @return
      */
@@ -94,6 +97,7 @@ public class ObjectCodec {
 
     /**
      * Object -> ByteArray
+     * 
      * @param obj
      * @return
      */
@@ -113,6 +117,7 @@ public class ObjectCodec {
 
     /**
      * ByteArray -> Object
+     * 
      * @param buffer
      * @return
      */

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.chinasb.common.basedb.annotation.Resource;
-import org.chinasb.common.utility.PackageUtility;
+import org.chinasb.common.utility.PackageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
@@ -24,13 +24,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * 资源管理服务
+ * 
  * @author zhujuan
  */
 @Component
-public class ResourceServiceImpl
-        implements
-            ResourceService,
-            ApplicationListener<ContextRefreshedEvent> {
+public class ResourceServiceImpl implements ResourceService,
+        ApplicationListener<ContextRefreshedEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceServiceImpl.class);
     /**
      * 刷新事件标志
@@ -40,49 +39,50 @@ public class ResourceServiceImpl
      * 数据存储集合
      */
     @SuppressWarnings("rawtypes")
-    private final ConcurrentHashMap<Class, Storage> storages = new ConcurrentHashMap<Class, Storage>(100);
+    private final ConcurrentHashMap<Class, Storage> storages =
+            new ConcurrentHashMap<Class, Storage>(100);
     /**
      * 资源监听器列表
      */
     private final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
-    
+
     /**
      * 资源路径
      */
     @Autowired(required = false)
     @Qualifier("basedb_location")
     private String resourceLocation;
-    
+
     /**
      * 是否处理Spring重载事件
      */
     @Autowired(required = false)
     @Qualifier("spring_refresh_event_reload")
     private Boolean springRefreshEventReload;
-    
+
     /**
      * 资源包路径
      */
     @Autowired(required = false)
     @Qualifier("basedb_package")
     private String resourcePackage;
-    
+
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     public ResourceServiceImpl() {
         this.resourceLocation = "res_db" + File.separator;
         this.springRefreshEventReload = Boolean.valueOf(false);
         this.resourcePackage = "org.chinasb.**.basedb.model";
     }
-    
+
     /**
      * 资源初始化
      */
     private void initialize() {
         registerListener();
         Collection<Class<?>> clazzCollection =
-                PackageUtility.scanPackages(new String[] {resourcePackage});
+                PackageUtils.scanPackages(new String[] {resourcePackage});
         if ((clazzCollection != null) && (!clazzCollection.isEmpty())) {
             for (Class<?> clazz : clazzCollection) {
                 try {
@@ -133,6 +133,7 @@ public class ResourceServiceImpl
 
     /**
      * 基础数据初始化
+     * 
      * @param clazz
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -148,6 +149,7 @@ public class ResourceServiceImpl
 
     /**
      * 获取基础数据存储对象
+     * 
      * @param clazz
      * @return
      */

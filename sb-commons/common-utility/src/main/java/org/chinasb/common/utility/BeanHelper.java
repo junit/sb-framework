@@ -24,16 +24,18 @@ import org.springframework.beans.BeanUtils;
  * 
  * @author zhujuan
  */
-public class BeanUtility {
-    private static Logger LOGGER = LoggerFactory.getLogger(BeanUtility.class);
-    private static BeanUtilsBean beanUtilsBean;
+public class BeanHelper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BeanUtils.class);
+    private static final BeanUtilsBean BEAN_UTILS_BEAN = BeanUtilsBean.getInstance();
 
-    static {
-        if (beanUtilsBean == null) {
-            beanUtilsBean = BeanUtilsBean.getInstance();
-        }
-    }
-
+    /**
+     * 复制对象
+     * 
+     * @param source
+     * @param target
+     * @param ignoreFields
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static void copyProperties(Object source, Object target, String... ignoreFields) {
         if ((source == null) || (target == null)) {
             return;
@@ -109,7 +111,7 @@ public class BeanUtility {
                         }
                         writeMethod.invoke(target, new Object[] {value});
                     } catch (Throwable e) {
-                        LOGGER.error("BeanUtil 对象复制出错:", e);
+                        LOGGER.error("BeanHelper 对象复制出错:", e);
                         throw new RuntimeException(e);
                     }
                 }
@@ -117,18 +119,31 @@ public class BeanUtility {
         }
     }
 
+    /**
+     * 克隆对象
+     * 
+     * @param bean
+     * @return
+     */
     public static Object cloneBean(Object bean) {
         try {
-            return beanUtilsBean.cloneBean(bean);
+            return BEAN_UTILS_BEAN.cloneBean(bean);
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 对象克隆出错:", e);
+            LOGGER.error("BeanHelper 对象克隆出错:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 对象属性赋值
+     * 
+     * @param bean
+     * @param name
+     * @param value
+     */
     public static void copyProperty(Object bean, String name, Object value) {
         try {
-            Class propertyClazz = beanUtilsBean.getPropertyUtils().getPropertyType(bean, name);
+            Class<?> propertyClazz = BEAN_UTILS_BEAN.getPropertyUtils().getPropertyType(bean, name);
             if ((propertyClazz.isEnum()) && ((value instanceof Integer))) {
                 int intValue = ((Integer) value).intValue();
                 Method method = propertyClazz.getMethod("values", new Class[0]);
@@ -139,22 +154,36 @@ public class BeanUtility {
                     return;
                 }
             }
-            beanUtilsBean.copyProperty(bean, name, value);
+            BEAN_UTILS_BEAN.copyProperty(bean, name, value);
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 对象属性赋值出错:", e);
+            LOGGER.error("BeanHelper 对象属性赋值出错:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 获取对象的属性描述
+     * 
+     * @param bean
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
     public static Map describe(Object bean) {
         try {
-            return beanUtilsBean.describe(bean);
+            return BEAN_UTILS_BEAN.describe(bean);
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 对象克隆出错:", e);
+            LOGGER.error("BeanHelper 获取对象的属性描述出错:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 创建对象的属性Map
+     * 
+     * @param bean
+     * @return
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static Map buildMap(Object bean) {
         if (bean == null) {
             return null;
@@ -162,12 +191,13 @@ public class BeanUtility {
         try {
             Map map = describe(bean);
             PropertyDescriptor[] pds =
-                    beanUtilsBean.getPropertyUtils().getPropertyDescriptors(bean);
+                    BEAN_UTILS_BEAN.getPropertyUtils().getPropertyDescriptors(bean);
             for (PropertyDescriptor pd : pds) {
                 Class type = pd.getPropertyType();
                 if (type.isEnum()) {
                     Object value =
-                            beanUtilsBean.getPropertyUtils().getSimpleProperty(bean, pd.getName());
+                            BEAN_UTILS_BEAN.getPropertyUtils()
+                                    .getSimpleProperty(bean, pd.getName());
                     int intValue = 0;
                     if (value != null) {
                         intValue = Enum.valueOf(type, String.valueOf(value)).ordinal();
@@ -175,7 +205,8 @@ public class BeanUtility {
                     map.put(pd.getName(), Integer.valueOf(intValue));
                 } else if (type == Date.class) {
                     Object value =
-                            beanUtilsBean.getPropertyUtils().getSimpleProperty(bean, pd.getName());
+                            BEAN_UTILS_BEAN.getPropertyUtils()
+                                    .getSimpleProperty(bean, pd.getName());
                     if (value != null) {
                         Calendar cal = Calendar.getInstance();
                         cal.setTime((Date) value);
@@ -185,11 +216,18 @@ public class BeanUtility {
             }
             return map;
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 创建Map失败:", e);
+            LOGGER.error("BeanHelper 创建Map失败:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 创建对象的属性Map
+     * 
+     * @param beanList
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
     public static List<Map> buildMapList(List beanList) {
         if ((beanList != null) && (!beanList.isEmpty())) {
             List<Map> mapList = new ArrayList<Map>();
@@ -201,6 +239,14 @@ public class BeanUtility {
         return null;
     }
 
+    /**
+     * 根据map创建bean
+     * 
+     * @param map
+     * @param clazz
+     * @return
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static Object buildBean(Map map, Class clazz) {
         if (map == null) {
             return null;
@@ -209,14 +255,14 @@ public class BeanUtility {
         try {
             bean = clazz.newInstance();
             PropertyDescriptor[] pds =
-                    beanUtilsBean.getPropertyUtils().getPropertyDescriptors(clazz);
+                    BEAN_UTILS_BEAN.getPropertyUtils().getPropertyDescriptors(clazz);
             for (PropertyDescriptor pd : pds) {
                 String fieldName = pd.getName();
                 if (map.containsKey(fieldName)) {
                     Object mapValue = map.get(fieldName);
-                    Class beanType = pd.getPropertyType();
-                    Object beanValue = mapValue;
-                    if (beanType.isEnum()) {
+                    Class propertyType = pd.getPropertyType();
+                    Object propertyValue = mapValue;
+                    if (propertyType.isEnum()) {
                         if (mapValue != null) {
                             if ((mapValue instanceof String)) {
                                 if (String.valueOf(mapValue).matches("\\d+")) {
@@ -225,66 +271,80 @@ public class BeanUtility {
                                                     .valueOf(mapValue)));
                                     int intValue = ((Integer) mapValue).intValue();
 
-                                    Method method = beanType.getMethod("values", new Class[0]);
+                                    Method method = propertyType.getMethod("values", new Class[0]);
                                     Object[] enumValues =
-                                            (Object[]) method.invoke(beanType, new Object[0]);
+                                            (Object[]) method.invoke(propertyType, new Object[0]);
                                     if ((intValue < 0) || (intValue >= enumValues.length)) {
                                         continue;
                                     }
-                                    beanValue = enumValues[intValue];
+                                    propertyValue = enumValues[intValue];
                                 } else {
                                     try {
-                                        beanValue =
-                                                Enum.valueOf(beanType, String.valueOf(mapValue));
+                                        propertyValue =
+                                                Enum.valueOf(propertyType, String.valueOf(mapValue));
                                     } catch (IllegalArgumentException e) {
                                         continue;
                                     }
                                 }
                             } else if ((mapValue instanceof Integer)) {
                                 int intValue = ((Integer) mapValue).intValue();
-                                Method method = beanType.getMethod("values", new Class[0]);
+                                Method method = propertyType.getMethod("values", new Class[0]);
                                 Object[] enumValues =
-                                        (Object[]) method.invoke(beanType, new Object[0]);
+                                        (Object[]) method.invoke(propertyType, new Object[0]);
                                 if ((intValue < 0) || (intValue >= enumValues.length)) {
                                     continue;
                                 }
-                                beanValue = enumValues[intValue];
+                                propertyValue = enumValues[intValue];
                             }
                         }
-                    } else if ((beanType.equals(Date.class)) && (mapValue != null)
+                    } else if ((propertyType.equals(Date.class)) && (mapValue != null)
                             && ((mapValue instanceof String))) {
                         try {
                             DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            beanValue = format.parse(String.valueOf(mapValue));
+                            propertyValue = format.parse(String.valueOf(mapValue));
                         } catch (ParseException e) {
-                            LOGGER.error("BeanUtil buildBean string 转 Date 出错!");
+                            LOGGER.error("BeanHelper buildBean string 转 Date 出错!");
                             continue;
                         }
                     }
-                    beanUtilsBean.copyProperty(bean, fieldName, beanValue);
+                    BEAN_UTILS_BEAN.copyProperty(bean, fieldName, propertyValue);
                 }
             }
             return bean;
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 根据map创建bean出错:", e);
+            LOGGER.error("BeanHelper 根据map创建bean出错:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 给对象属性赋值
+     * 
+     * @param bean
+     * @param name
+     * @param value
+     */
     public static void setProperty(Object bean, String name, Object value) {
         try {
-            beanUtilsBean.setProperty(bean, name, value);
+            BEAN_UTILS_BEAN.setProperty(bean, name, value);
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 给对象属性赋值出错:", e);
+            LOGGER.error("BeanHelper 给对象属性赋值出错:", e);
             throw new RuntimeException(e);
         }
     }
 
+    /**
+     * 获取对象属性值
+     * 
+     * @param bean
+     * @param name
+     * @return
+     */
     public static Object getProperty(Object bean, String name) {
         try {
-            return beanUtilsBean.getPropertyUtils().getSimpleProperty(bean, name);
+            return BEAN_UTILS_BEAN.getPropertyUtils().getSimpleProperty(bean, name);
         } catch (Throwable e) {
-            LOGGER.error("BeanUtil 获取对象属性值出错:", e);
+            LOGGER.error("BeanHelper 获取对象属性值出错:", e);
             throw new RuntimeException(e);
         }
     }

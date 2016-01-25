@@ -14,6 +14,7 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * js执行引擎
+ * 
  * @author zhujuan
  */
 public class Rhino {
@@ -30,6 +31,7 @@ public class Rhino {
 
     /**
      * 获得当前线程的脚本作用域
+     * 
      * @return
      */
     private static Scriptable getScope() {
@@ -39,7 +41,7 @@ public class Rhino {
             Context context = global.enterContext();
             context.setWrapFactory(new WrapFactory() {
                 protected JavascriptWrapper coreWrapper = new CoreJavaScriptWrapper();
-                
+
                 /**
                  * wrapper an java object to javascript object.
                  */
@@ -59,6 +61,7 @@ public class Rhino {
 
     /**
      * 执行脚本
+     * 
      * @param expression
      * @param ctx
      * @return
