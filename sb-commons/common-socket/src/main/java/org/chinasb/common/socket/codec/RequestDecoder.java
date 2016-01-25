@@ -1,13 +1,5 @@
 package org.chinasb.common.socket.codec;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.util.Attribute;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -28,6 +20,14 @@ import org.chinasb.common.utility.HashUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.util.Attribute;
 
 /**
  * <p>
@@ -293,6 +293,9 @@ public class RequestDecoder extends ByteToMessageDecoder {
         }
         if (messageType == MessageType.JAVA.ordinal()) {
             return ObjectCodec.byteArray2Object(array);
+        }
+        if (messageType == MessageType.JSON.ordinal()) {
+            return ObjectCodec.byteArray2JsonNode(array);
         }
         return null;
     }

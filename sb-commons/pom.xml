@@ -51,7 +51,7 @@
 		<netty_version>5.0.0.Alpha2</netty_version>
 		<blazeds_version>3.2.0.3978</blazeds_version>
 		<hibernate_version>5.0.4.Final</hibernate_version>
-		<jackson_version>1.9.13</jackson_version>
+		<jackson_version>2.7.0</jackson_version>
 		<owner_version>1.0.9</owner_version>
 		
 		<!-- for maven compiler plugin -->
@@ -134,8 +134,8 @@
 				<version>${blazeds_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.codehaus.jackson</groupId>
-				<artifactId>jackson-mapper-asl</artifactId>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
 				<version>${jackson_version}</version>
 			</dependency>
 			<dependency>

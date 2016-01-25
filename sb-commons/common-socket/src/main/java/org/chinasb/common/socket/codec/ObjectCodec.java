@@ -8,6 +8,9 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.chinasb.common.utility.JsonUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import flex.messaging.io.SerializationContext;
 import flex.messaging.io.amf.Amf3Input;
@@ -145,5 +148,43 @@ public class ObjectCodec {
             } catch (Exception e) {
             }
         }
+    }
+
+    /**
+     * ByteArray -> JsonNode
+     * 
+     * @param buffer
+     * @return
+     */
+    public static Object byteArray2JsonNode(byte[] buffer) {
+        if ((buffer == null) || (buffer.length == 0)) {
+            return null;
+        }
+        try {
+            return JsonUtils.getObjectMapper().readValue(buffer, JsonNode.class);
+        } catch (Exception e) {
+            LOGGER.error("byteArray2JsonNode Error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * JsonObject -> ByteArray
+     * 
+     * @param obj
+     * @return
+     */
+    public static byte[] jsonObject2ByteArray(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        byte[] bytes = null;
+        try {
+            bytes = JsonUtils.getWriter().writeValueAsBytes(obj);
+        } catch (Exception ex) {
+            LOGGER.error("jsonObject2ByteArray error: " + ex.getMessage());
+        }
+        return bytes;
     }
 }

@@ -147,6 +147,9 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
         if (messageType == MessageType.JAVA.ordinal()) {
             return ObjectCodec.object2ByteArray(obj);
         }
+        if (messageType == MessageType.JSON.ordinal()) {
+            return ObjectCodec.jsonObject2ByteArray(obj);
+        }
         return null;
     }
 
