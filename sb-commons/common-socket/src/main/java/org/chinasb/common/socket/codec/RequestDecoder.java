@@ -48,7 +48,6 @@ import io.netty.util.Attribute;
  *
  */
 @Component
-@Scope("prototype")
 public class RequestDecoder extends ByteToMessageDecoder {
 
     private static final Log LOGGER = LogFactory.getLog(RequestDecoder.class);

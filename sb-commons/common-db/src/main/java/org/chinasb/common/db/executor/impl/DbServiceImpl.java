@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,18 +19,17 @@ import org.chinasb.common.db.dao.CommonDao;
 import org.chinasb.common.db.executor.DbCallback;
 import org.chinasb.common.db.executor.DbService;
 import org.chinasb.common.db.model.BaseModel;
-import org.chinasb.common.threadpool.NamedThreadFactory;
-import org.chinasb.common.threadpool.reactor.DispatcherFactory;
+import org.chinasb.common.threadpool.ringbuffer.DisruptorExecutor;
+import org.chinasb.common.threadpool.ringbuffer.Event;
 import org.chinasb.common.utility.CollectionUtils;
 import org.chinasb.common.utility.Constants;
+import org.chinasb.common.utility.NamedDaemonThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Service;
-
-import reactor.core.Dispatcher;
 
 import com.google.common.collect.Sets;
 
@@ -44,7 +44,7 @@ public class DbServiceImpl implements DbService {
     /**
      * 任务调度器
      */
-    private final Dispatcher dispatcher;
+    private final DisruptorExecutor disruptorExecutor;
     /**
      * 实体集合
      */
@@ -72,7 +72,7 @@ public class DbServiceImpl implements DbService {
     public final Runnable HANDLER_CACHED_OBJ_TASK;
 
     public DbServiceImpl() {
-        dispatcher = DispatcherFactory.ringBufferDispatcher(DbServiceImpl.class, "缓存模块:入库线程池");
+        disruptorExecutor = new DisruptorExecutor("缓存模块:入库线程池");
         entityBlockTime = Integer.valueOf(Constants.ONE_MINUTE_MILLISECOND);
         takeLock = new ReentrantLock();
         notEmpty = takeLock.newCondition();
@@ -105,7 +105,7 @@ public class DbServiceImpl implements DbService {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Initialize DB Daemon Thread...");
         }
-        NamedThreadFactory factory = new NamedThreadFactory("数据库入库Daemon线程", true);
+        ThreadFactory factory = new NamedDaemonThreadFactory("数据库入库Daemon线程");
         Thread pollCachedObjThread = factory.newThread(HANDLER_CACHED_OBJ_TASK);
         pollCachedObjThread.start();
     }
@@ -132,7 +132,7 @@ public class DbServiceImpl implements DbService {
      * @param entityCache
      */
     private void add2Queue(DbCallback callback, EntityCache entityCache) {
-        dispatcher.execute(createTask(null, entityCache));
+        disruptorExecutor.dispatch(Event.wrap(createTask(null, entityCache)));
     }
 
     /**
@@ -181,20 +181,15 @@ public class DbServiceImpl implements DbService {
         if (DB_OBJECT_MAP.isEmpty()) {
             return;
         }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet =
-                new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
-        synchronized (DB_OBJECT_MAP) {
-            objSet.putAll(DB_OBJECT_MAP);
-            DB_OBJECT_MAP.clear();
-        }
-        Iterator<Class<?>> iterator = objSet.keySet().iterator();
-        while (iterator.hasNext()) {
-            Object key = iterator.next();
-            Set<BaseModel<?>> set = objSet.get(key);
-            if ((set != null) && (set.size() > 0)) {
-                dispatcher.execute(createTask(null, new EntityCache(new Object[] {set})));
-            }
-        }
+		Iterator<Class<?>> iterator = DB_OBJECT_MAP.keySet().iterator();
+		while (iterator.hasNext()) {
+			Object key = iterator.next();
+			Set<BaseModel<?>> set = DB_OBJECT_MAP.remove(key);
+			if ((set != null) && (set.size() > 0)) {
+				disruptorExecutor.dispatch(
+						Event.wrap(createTask(null, new EntityCache(new Object[] {set}))));
+			}
+		}
     }
 
     /**
@@ -204,17 +199,14 @@ public class DbServiceImpl implements DbService {
         if (DB_OBJECT_MAP.isEmpty()) {
             return;
         }
-        ConcurrentMap<Class<?>, Set<BaseModel<?>>> objSet =
-                new ConcurrentHashMap<Class<?>, Set<BaseModel<?>>>();
-        synchronized (DB_OBJECT_MAP) {
-            objSet.putAll(DB_OBJECT_MAP);
-            DB_OBJECT_MAP.clear();
-        }
         int subCount = 100;
-        for (Set<BaseModel<?>> concurrentHashSet : objSet.values()) {
-            if ((concurrentHashSet != null) && (!concurrentHashSet.isEmpty())) {
-                int maxSize = concurrentHashSet.size();
-                List<BaseModel<?>> list = new ArrayList<BaseModel<?>>(concurrentHashSet);
+		Iterator<Class<?>> iterator = DB_OBJECT_MAP.keySet().iterator();
+		while (iterator.hasNext()) {
+			Object key = iterator.next();
+			Set<BaseModel<?>> set = DB_OBJECT_MAP.remove(key);
+			if ((set != null) && (set.size() > 0)) {
+				int maxSize = set.size();
+                List<BaseModel<?>> list = new ArrayList<BaseModel<?>>(set);
                 int maxCount =
                         maxSize % subCount == 0 ? maxSize / subCount : maxSize / subCount + 1;
                 for (int index = 0; index < maxCount; index++) {
@@ -222,8 +214,8 @@ public class DbServiceImpl implements DbService {
                             CollectionUtils.subListCopy(list, subCount * index, subCount);
                     updateEntityIntime(new Object[] {subList});
                 }
-            }
-        }
+			}
+		}
     }
 
     /**
@@ -242,16 +234,16 @@ public class DbServiceImpl implements DbService {
      * 
      * @param entity
      */
-    private void put2ObjectMap(BaseModel<?> entity) {
-        Class<?> clazz = entity.getClass();
-        Set<BaseModel<?>> objs = DB_OBJECT_MAP.get(clazz);
-        if (objs == null) {
-            Set<BaseModel<?>> concurrentHashSet = Sets.newConcurrentHashSet();
-            DB_OBJECT_MAP.putIfAbsent(clazz, concurrentHashSet);
-            objs = DB_OBJECT_MAP.get(clazz);
-        }
-        objs.add(entity);
-    }
+	private void put2ObjectMap(BaseModel<?> entity) {
+		Class<?> clazz = entity.getClass();
+		Set<BaseModel<?>> objs = DB_OBJECT_MAP.get(clazz);
+		if (objs == null) {
+			Set<BaseModel<?>> concurrentHashSet = Sets.newConcurrentHashSet();
+			DB_OBJECT_MAP.putIfAbsent(clazz, concurrentHashSet);
+			objs = DB_OBJECT_MAP.get(clazz);
+		}
+		objs.add(entity);
+	}
 
     @Override
     @SuppressWarnings("unchecked")
@@ -301,8 +293,8 @@ public class DbServiceImpl implements DbService {
      * 服务停止处理
      */
     public void workDone() {
-        while (dispatcher != null) {
-            if (!dispatcher.alive()) {
+        while (disruptorExecutor != null) {
+            if (!disruptorExecutor.alive()) {
                 break;
             }
             if (!DB_OBJECT_MAP.isEmpty()) {
@@ -313,8 +305,7 @@ public class DbServiceImpl implements DbService {
             } catch (InterruptedException e) {
                 LOGGER.error("{}", e);
             }
-            dispatcher
-                    .awaitAndShutdown(Constants.ONE_MINUTE_MILLISECOND * 5, TimeUnit.MILLISECONDS);
+			disruptorExecutor.shutdown(Constants.ONE_MINUTE_MILLISECOND * 5, TimeUnit.MILLISECONDS);
         }
     }
 

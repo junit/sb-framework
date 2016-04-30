@@ -1,15 +1,15 @@
 package org.chinasb.common.socket.firewall;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerAdapter;
-import io.netty.channel.ChannelHandlerContext;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
  * 防火墙指令数据过滤处理
@@ -19,8 +19,10 @@ import org.springframework.stereotype.Component;
  */
 @Sharable
 @Component
-public class CmdAttackFilter extends ChannelHandlerAdapter {
+public class CmdAttackFilter extends ChannelInboundHandlerAdapter {
+	
     private static final Log LOGGER = LogFactory.getLog(CmdAttackFilter.class);
+    
     @Autowired
     private Firewall firewall;
     @Autowired

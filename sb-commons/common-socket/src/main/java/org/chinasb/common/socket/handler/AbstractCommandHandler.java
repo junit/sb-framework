@@ -13,6 +13,7 @@ import org.chinasb.common.socket.SessionManager;
 import org.chinasb.common.socket.controller.Dispatcher;
 import org.chinasb.common.socket.message.Request;
 import org.chinasb.common.socket.message.Response;
+import org.chinasb.common.socket.type.ResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,17 +74,24 @@ public abstract class AbstractCommandHandler implements CommandHandler {
             response.setMessageType(request.getMessageType());
             CommandResolver commandResolver = COMMAND_RESOLVER.get(Integer.valueOf(cmd));
             if (commandResolver != null) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug(String.format("module:[%d], cmd:[%d]",
-                            new Object[] {Integer.valueOf(module), Integer.valueOf(cmd)}));
-                }
-                commandResolver.execute(session, request, response);
+				if (logger.isDebugEnabled()) {
+					logger.debug(String.format("角色:[%d], module:[%d], cmd:[%d]",
+							new Object[] {sessionManager.getPlayerId(session),
+									Integer.valueOf(module), Integer.valueOf(cmd)}));
+				}
+				try {
+					commandResolver.execute(session, request, response);
+				} catch (Exception e) {
+					logger.error(String.format("角色:[%d], module:[%d], cmd:[%d], stack:[%s]",
+							new Object[] {sessionManager.getPlayerId(session),
+									Integer.valueOf(module), Integer.valueOf(cmd), e}));
+				}
             } else {
                 if (logger.isDebugEnabled()) {
                     logger.error(String.format("No Invoker for module:[%d], cmd:[%d]",
                             new Object[] {Integer.valueOf(module), Integer.valueOf(cmd)}));
                 }
-                response.setStatus(-1);
+                response.setStatus(ResponseCode.RESPONSE_CODE_ERROR);
                 if (session.isActive()) {
                     session.writeAndFlush(response);
                 }

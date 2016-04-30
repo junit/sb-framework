@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.chinasb.common.utility.JsonUtils;
+import org.chinasb.common.utility.JSONUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -161,7 +161,7 @@ public class ObjectCodec {
             return null;
         }
         try {
-            return JsonUtils.getObjectMapper().readValue(buffer, JsonNode.class);
+            return JSONUtils.getObjectMapper().readValue(buffer, JsonNode.class);
         } catch (Exception e) {
             LOGGER.error("byteArray2JsonNode Error: " + e.getMessage());
             return null;
@@ -181,7 +181,7 @@ public class ObjectCodec {
 
         byte[] bytes = null;
         try {
-            bytes = JsonUtils.getWriter().writeValueAsBytes(obj);
+            bytes = JSONUtils.getWriter().writeValueAsBytes(obj);
         } catch (Exception ex) {
             LOGGER.error("jsonObject2ByteArray error: " + ex.getMessage());
         }

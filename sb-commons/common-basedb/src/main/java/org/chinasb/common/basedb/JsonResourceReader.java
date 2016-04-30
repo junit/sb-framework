@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.chinasb.common.utility.JsonUtils;
+import org.chinasb.common.utility.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class JsonResourceReader implements ResourceReader {
     public <E> Iterator<E> read(InputStream input, Class<E> clazz) {
         try {
             JavaType type = typeFactory.constructCollectionType(ArrayList.class, clazz);
-            List<E> list = JsonUtils.getObjectMapper().readValue(input, type);
+            List<E> list = JSONUtils.getObjectMapper().readValue(input, type);
             return list.iterator();
         } catch (Exception e) {
             LOGGER.error("JsonReader读取基础数据:[{}] 文件异常!", clazz, e);

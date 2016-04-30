@@ -16,7 +16,7 @@ import org.chinasb.common.jreloader.compiler.Compiler;
 import org.chinasb.common.jreloader.compiler.support.JdkCompiler;
 import org.chinasb.common.jreloader.watcher.FolderWatcher;
 import org.chinasb.common.jreloader.watcher.WatchEventListener;
-import org.chinasb.common.threadpool.NamedThreadFactory;
+import org.chinasb.common.utility.NamedDaemonThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.FormattingTuple;
@@ -42,7 +42,7 @@ public class JReloader {
         complier = new JdkCompiler();
         reloaders = new ConcurrentHashMap<Integer, Reloader>();
         watcher = new FolderWatcher(Integer.getInteger("jreloader.interval", 5000));
-        watcher.setThreadFactory(new NamedThreadFactory("脚本重载线程", true));
+        watcher.setThreadFactory(new NamedDaemonThreadFactory("脚本重载线程"));
         watcher.start();
         String[] dirNames = System.getProperty("jreloader.dirs", ".").split("\\,");
         for (String dirName : dirNames) {

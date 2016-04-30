@@ -18,6 +18,7 @@ public interface CommandResolver {
      * @param session
      * @param request
      * @param response
+     * @throws Exception 
      */
-    public void execute(Channel session, Request request, Response response);
+    public void execute(Channel session, Request request, Response response) throws Exception;
 }

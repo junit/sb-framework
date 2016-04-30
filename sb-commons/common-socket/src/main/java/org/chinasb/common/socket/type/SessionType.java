@@ -55,4 +55,6 @@ public interface SessionType {
      * 最后一次聊天时间
      */
     public static final AttributeKey<Long> LAST_CHAT_KEY = AttributeKey.valueOf("lastChat");
+    
+    public static final AttributeKey<Boolean> HANDSHAKE_COMPLETE = AttributeKey.valueOf("handshake_complete");
 }

@@ -64,7 +64,10 @@
 				<executions>
 					<execution>
 						<id>attach-sources</id>
-						<phase>none</phase>
+   						<phase>verify</phase>
+   						<goals>  
+                            <goal>jar-no-fork</goal>  
+                        </goals>  
 					</execution>
 				</executions>
 			</plugin>
@@ -73,7 +76,7 @@
 				<executions>
                     <execution>
                         <id>attach-javadoc</id>
-						<phase>deploy</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -102,7 +105,6 @@
 						</goals>
 						<configuration>
 							<createSourcesJar>true</createSourcesJar>
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
 							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
 							<artifactSet>
 								<includes>

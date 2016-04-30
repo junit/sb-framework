@@ -23,21 +23,16 @@ public class ApplicationContext {
         throw new RuntimeException("ServerContext did not initialized!");
     }
 
+	public ApplicationContext() {
+		initialize();
+	}
+    
     /**
      * 应用环境初始化
      */
     public void initialize() {
         ctx = new ClassPathXmlApplicationContext(new String[] {"applicationContext*.xml"});
         ctx.registerShutdownHook();
-    }
-
-    /**
-     * 应用环境销毁
-     */
-    public void destory() {
-        if (ctx != null) {
-            ctx.close();
-        }
     }
 
     /**

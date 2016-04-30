@@ -3,6 +3,7 @@ package org.chinasb.common.socket.push;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.PostConstruct;
 
@@ -10,7 +11,7 @@ import org.aeonbits.owner.ConfigCache;
 import org.chinasb.common.socket.SessionManager;
 import org.chinasb.common.socket.config.ServerConfig;
 import org.chinasb.common.socket.message.Response;
-import org.chinasb.common.threadpool.NamedThreadFactory;
+import org.chinasb.common.utility.NamedDaemonThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +109,7 @@ public final class Pusher {
                 PUSHER_QUEUE_ARRAY[index] = new LinkedBlockingQueue<PushContext>(Integer.MAX_VALUE);
                 queue = PUSHER_QUEUE_ARRAY[index];
             }
-            NamedThreadFactory factory = new NamedThreadFactory(threadName + index, true);
+            ThreadFactory factory = new NamedDaemonThreadFactory(threadName + index);
             Thread thread = factory.newThread(getCustomerThread(queue));
             thread.start();
         }

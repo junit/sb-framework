@@ -1,11 +1,5 @@
 package org.chinasb.common.socket.codec;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -16,13 +10,17 @@ import org.chinasb.common.socket.message.Response;
 import org.chinasb.common.socket.type.ResponseCode;
 import org.springframework.stereotype.Component;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToByteEncoder;
+
 /**
  * 消息编码器
  * 
  * @author zhujuan
  *
  */
-@Sharable
 @Component
 public class ResponseEncoder extends MessageToByteEncoder<Object> {
 

@@ -39,40 +39,33 @@
 		<project.build.sourceEncoding>${file_encoding}</project.build.sourceEncoding>
 
 		<!-- Common libs -->
-		<slf4j_version>1.7.13</slf4j_version>
-		<spring_version>4.2.3.RELEASE</spring_version>
-		<reactor_version>2.0.7.RELEASE</reactor_version>
-		<guava_version>18.0</guava_version>
+		<spring_version>4.2.5.RELEASE</spring_version>
+		<disruptor_version>3.3.4</disruptor_version>
+		<guava_version>19.0</guava_version>
+		<fastutil_version>7.0.11</fastutil_version>
 		<commons_beanutils_version>1.9.2</commons_beanutils_version>
 		<commons_digester3_version>3.2</commons_digester3_version>
 		<commons_io_version>2.4</commons_io_version>
 		<rhino_version>1.7R4</rhino_version>
 		<poi_version>3.10-FINAL</poi_version>
-		<netty_version>5.0.0.Alpha2</netty_version>
+		<netty_version>4.1.0.CR7</netty_version>
 		<blazeds_version>3.2.0.3978</blazeds_version>
-		<hibernate_version>5.0.4.Final</hibernate_version>
+		<hibernate_version>5.1.0.Final</hibernate_version>
 		<jackson_version>2.7.0</jackson_version>
 		<owner_version>1.0.9</owner_version>
 		
+		<!-- Log libs -->
+		<slf4j_version>1.7.13</slf4j_version>
+		
 		<!-- for maven compiler plugin -->
-		<maven_compiler_plugin_version>3.1</maven_compiler_plugin_version>
-		<compiler_version>1.8</compiler_version>
+		<maven_compiler_plugin_version>2.3.2</maven_compiler_plugin_version>
 		<java_source_version>1.8</java_source_version>
 		<java_target_version>1.8</java_target_version>
 		<file_encoding>UTF-8</file_encoding>
-
-		<maven_source_plugin_version>2.1.1</maven_source_plugin_version>
-		<maven_jar_plugin_version>2.3.2</maven_jar_plugin_version>
-		<maven_javadoc_plugin_version>2.3.1</maven_javadoc_plugin_version>
-		<maven_deploy_plugin_version>2.7</maven_deploy_plugin_version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j_version}</version>
-			</dependency>
+			<!-- Common libs -->
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-context</artifactId>
@@ -84,14 +77,18 @@
 				<version>${spring_version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.projectreactor.spring</groupId>
-				<artifactId>reactor-spring-context</artifactId>
-				<version>${reactor_version}</version>
+				<groupId>com.lmax</groupId>
+				<artifactId>disruptor</artifactId>
+				<version>${disruptor_version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${guava_version}</version>
+			</dependency>
+			<dependency>
+				<groupId>it.unimi.dsi</groupId>
+				<artifactId>fastutil</artifactId>
 			</dependency>
 			<dependency>
 				<groupId>commons-beanutils</groupId>
@@ -148,10 +145,24 @@
 	            <artifactId>owner-java8</artifactId>
 	            <version>${owner_version}</version>
 	        </dependency>
+	        <!-- Log libs -->
+	       	<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j_version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<build>
 		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java_source_version}</source>
+					<target>${java_target_version}</target>
+					<encoding>${file_encoding}</encoding>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -174,40 +185,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>${maven_jar_plugin_version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>${maven_deploy_plugin_version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven_compiler_plugin_version}</version>
-					<configuration>
-						<compilerVersion>${compiler_version}</compilerVersion>
-						<fork>true</fork>
-						<source>${java_source_version}</source>
-						<target>${java_target_version}</target>
-						<encoding>${file_encoding}</encoding>
-						<debug>true</debug>
-						<optimize>true</optimize>
-						<showDeprecation>true</showDeprecation>
-						<showWarnings>true</showWarnings>
-						<compilerArgument>-Xlint:-options</compilerArgument>
-						<!-- XXX: maven-release-plugin complains - MRELEASE-715 -->
-						<!-- <compilerArguments> <Xlint:-options /> <Xlint:unchecked /> <Xlint:deprecation 
-							/> </compilerArguments> -->
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 	<developers>
 		<developer>
