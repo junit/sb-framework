@@ -1,13 +1,13 @@
 package org.chinasb.common.basedb;
 
 /**
- * 对象初始化接口
+ * 初始化基础数据接口
  * 
  * @author zhujuan
  */
 public interface InitializeBean {
     /**
-     * 属性设置后处理
+     * 在属性被设置完后(索引数据前)做一些处理
      */
     public void afterPropertiesSet();
 }

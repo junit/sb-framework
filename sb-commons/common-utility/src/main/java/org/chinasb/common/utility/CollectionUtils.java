@@ -15,14 +15,15 @@ import java.util.Map;
  */
 public abstract class CollectionUtils {
 
-    /**
-     * 拷贝数据集合
-     * 
-     * @param source 源数据
-     * @param start 开始索引
-     * @param count 拷贝数量
-     * @return
-     */
+	/**
+	 * 获取列表的子集的拷贝
+	 * 
+	 * @param <T>
+	 * @param source 			源列表
+	 * @param start 			开始位置
+	 * @param count 			获取记录数量
+	 * @return {@link List}		返回结果是另一个 ArrayList 实例
+	 */
     public static <T> List<T> subListCopy(List<T> source, int start, int count) {
         if ((source == null) || (source.size() == 0)) {
             return new ArrayList<T>(0);
@@ -39,14 +40,15 @@ public abstract class CollectionUtils {
         return new ArrayList<T>(source.subList(fromIndex, endIndex));
     }
 
-    /**
-     * 拷贝数据集合
-     * 
-     * @param source 源数据
-     * @param startIndex 开始索引
-     * @param stopIndex 结束索引
-     * @return
-     */
+	/**
+	 * 获取列表的子集的拷贝
+	 * 
+	 * @param <T>
+	 * @param source 			源列表
+	 * @param start 			开始位置
+	 * @param stopIndex 		结束位置
+	 * @return {@link List}		返回结果是另一个 ArrayList 实例
+	 */
     public static <T> List<T> subList(List<T> source, int startIndex, int stopIndex) {
         if ((source == null) || (source.size() == 0)) {
             return new ArrayList<T>(0);
@@ -63,18 +65,54 @@ public abstract class CollectionUtils {
         return new ArrayList<T>(source.subList(fromIndex, stopIndex));
     }
 
-    /**
-     * 添加数据到集合指定位置
-     * 
-     * @param list
-     * @param idx
-     * @param element
-     */
-    public static <T> void addNotExist(List<T> list, int idx, T element) {
-        if (!list.contains(element)) {
-            list.add(idx, element);
-        }
-    }
+	/**
+	 * 内存列表分页
+	 * @param <T>
+	 * @param list
+	 * @param startIndex
+	 * @param fetchCount
+	 * @return
+	 */
+	public static <T> List<T> pageResult(List<T> list, int startIndex, int fetchCount){
+		if(list != null && list.size() > 0){
+			if(startIndex >= list.size()){
+				return null;
+			}
+			startIndex = startIndex < 0?0:startIndex;
+			if(fetchCount <= 0){
+				return list.subList(startIndex, list.size());
+			}
+			int toIndex = Math.min(startIndex + fetchCount, list.size());
+			return list.subList(startIndex, toIndex);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 当列表元素不存在时，进行添加
+	 * 
+	 * @param list 		列表
+	 * @param idx 		插入位置
+	 * @param element 	插入的元素
+	 */
+	public static <T> void addNotExist(List<T> list, int idx, T element) {
+		if (list != null && !list.contains(element)) {
+			list.add(idx, element);
+		}
+	}
+
+	/**
+	 * 当列表元素不存在时，进行添加
+	 * 
+	 * @param list 		列表
+	 * @param element 	插入的元素
+	 */
+	public static <T> void addNotExist(List<T> list, T element) {
+		if (list != null && !list.contains(element)) {
+			list.add(element);
+		}
+	}
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> List<T> sort(List<T> list) {
@@ -248,12 +286,24 @@ public abstract class CollectionUtils {
         return ret;
     }
 
+	/**
+	 * 判断集合是否为空
+	 * 
+	 * @param  collections		集合信息
+	 * @return {@link Boolean}	true-集合为空, false-集合不为空
+	 */
     public static boolean isEmpty(Collection<?> collection) {
-        return collection == null || collection.size() == 0;
+        return collection == null || collection.isEmpty();
     }
 
+	/**
+	 * 判断集合是否不为空
+	 * 
+	 * @param  collections		集合信息
+	 * @return {@link Boolean}	true-集合为空, false-集合不为空
+	 */
     public static boolean isNotEmpty(Collection<?> collection) {
-        return collection != null && collection.size() > 0;
+        return collection != null && !collection.isEmpty();
     }
 
     private CollectionUtils() {}

@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Id属性
+ * Id属性/方法注释
  * 
  * @author zhujuan
  *

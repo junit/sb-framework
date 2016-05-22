@@ -7,7 +7,7 @@ package org.chinasb.common.basedb;
  */
 public interface ResourceListener {
     /**
-     * 基础数据重载
+     * 当基础数据重载后调用
      */
     public void onBasedbReload();
 }

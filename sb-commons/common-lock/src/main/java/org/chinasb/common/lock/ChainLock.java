@@ -11,7 +11,9 @@ import java.util.concurrent.locks.Lock;
  */
 public class ChainLock {
     private final List<? extends Lock> locks;
+    /** 获取锁超时时间,单位：毫秒 */
     private static final int TIME_OUT = 5;
+    /** 获取锁超时时间,次数 */
     private static final int TIMES = 3;
 
     /**
@@ -37,13 +39,16 @@ public class ChainLock {
                 int count = 0;
                 Lock current = locks.get(i);
                 try {
-                    while ((!current.tryLock())
-                            && (!current.tryLock(TIME_OUT, TimeUnit.MILLISECONDS))) {
-                        if (count++ >= TIMES) {
-                            relock = true;
-                            break;
-                        }
-                    }
+					while (true) {
+						if (current.tryLock() || current.tryLock(TIME_OUT, TimeUnit.MILLISECONDS)) {
+							break;
+						}
+
+						if (count++ >= TIMES) {
+							relock = true;
+							break;
+						}
+					}
                 } catch (Exception e) {
                     relock = true;
                 }

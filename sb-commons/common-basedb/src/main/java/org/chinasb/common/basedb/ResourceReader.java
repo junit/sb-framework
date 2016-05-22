@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 /**
- * 资源阅读器
+ * 资源读取器
  * 
  * @author zhujuan
  */

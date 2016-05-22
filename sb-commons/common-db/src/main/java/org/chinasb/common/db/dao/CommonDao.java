@@ -3,6 +3,7 @@ package org.chinasb.common.db.dao;
 import java.io.Serializable;
 import java.util.Collection;
 
+import org.chinasb.common.db.model.BaseModel;
 import org.hibernate.criterion.DetachedCriteria;
 
 /**
@@ -26,7 +27,7 @@ public interface CommonDao {
      * @param entities
      */
     @SuppressWarnings("unchecked")
-    <T> void save(T... entities);
+    <T extends BaseModel<PK>, PK extends Comparable<PK> & Serializable> void save(T... entities);
 
     /**
      * 更新实体

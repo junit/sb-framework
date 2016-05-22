@@ -37,7 +37,7 @@ public class LockUtils {
         List<ObjectLock> locks = new ArrayList<ObjectLock>(objects.length);
         for (Object obj : objects) {
             ObjectLock lock = holder.getLock(obj);
-            if ((lock != null) && (!(locks.contains(lock)))) {
+            if (lock != null && !locks.contains(lock)) {
                 locks.add(lock);
             }
         }

@@ -15,9 +15,10 @@ import org.hibernate.type.StringType;
 public class MySQLDialect extends MySQL5InnoDBDialect {
 
     public MySQLDialect() {
-        registerHibernateType(Types.LONGNVARCHAR, StringType.INSTANCE.getName());
-        registerHibernateType(Types.LONGVARCHAR, StringType.INSTANCE.getName());
-        registerHibernateType(Types.LONGVARBINARY, BinaryType.INSTANCE.getName());
+    	super();
+    	super.registerHibernateType(Types.LONGNVARCHAR, StringType.INSTANCE.getName());
+    	super.registerHibernateType(Types.LONGVARCHAR, StringType.INSTANCE.getName());
+    	super.registerHibernateType(Types.LONGVARBINARY, BinaryType.INSTANCE.getName());
     }
 
 }

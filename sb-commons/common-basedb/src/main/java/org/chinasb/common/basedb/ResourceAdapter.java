@@ -14,37 +14,37 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class ResourceAdapter implements ResourceListener {
 
-    @Autowired
-    protected ResourceService resourceService;
+	@Autowired
+	protected ResourceService resourceService;
 
-    @Override
-    public void onBasedbReload() {
-        initialize();
-    }
+	@Override
+	public void onBasedbReload() {
+		this.initialize();
+	}
 
-    /**
-     * 获取基础数据列表
-     * 
-     * @param clazz 基础数据类对象
-     * @param idList 基础数据ID列表
-     * @return
-     */
-    protected <T> List<T> getFromIdList(Class<T> clazz, Collection<?> idList) {
-        if ((idList != null) && (!idList.isEmpty())) {
-            List<T> entityList = new ArrayList<T>();
-            for (Object id : idList) {
-                T entity = resourceService.get(id, clazz);
-                if (entity != null) {
-                    entityList.add(entity);
-                }
-            }
-            return Collections.unmodifiableList(entityList);
-        }
-        return null;
-    }
+	/**
+	 * 获取基础数据列表
+	 * 
+	 * @param clazz 基础数据类对象
+	 * @param idList 基础数据ID列表
+	 * @return
+	 */
+	protected <T> List<T> getFromIdList(Class<T> clazz, Collection<?> idList) {
+		if (idList != null && !idList.isEmpty()) {
+			List<T> entityList = new ArrayList<T>();
+			for (Object id : idList) {
+				T entity = resourceService.get(id, clazz);
+				if (entity != null) {
+					entityList.add(entity);
+				}
+			}
+			return Collections.unmodifiableList(entityList);
+		}
+		return Collections.emptyList();
+	}
 
-    /**
-     * 初始化
-     */
-    public abstract void initialize();
+	/**
+	 * 初始化
+	 */
+	public abstract void initialize();
 }

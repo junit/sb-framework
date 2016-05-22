@@ -95,7 +95,7 @@ public abstract class CachedServiceAdpter {
                 if (entity != null) {
                     return entity;
                 }
-                entity = (T) getEntityFromDB(id, clazz);
+                entity = getEntityFromDB(id, clazz);
                 return (T) cachedService.put2EntityCache(key, entity);
             }
         } catch (Exception e) {

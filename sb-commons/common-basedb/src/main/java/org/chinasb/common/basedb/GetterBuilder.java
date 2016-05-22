@@ -12,7 +12,7 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * 取值生成器
+ * 取值构建器
  * 
  * @author zhujuan
  */
@@ -20,9 +20,9 @@ public class GetterBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(GetterBuilder.class);
 
     /**
-     * 创建ID取值器
+     * 创建指定资源类的ID取值器
      * 
-     * @param clz
+     * @param clz 资源类
      * @return
      */
     public static Getter createIdGetter(Class<?> clz) {
@@ -41,7 +41,7 @@ public class GetterBuilder {
     }
 
     /**
-     * 属性取值
+     * 属性取值器
      * 
      * @author zhujuan
      */
@@ -68,10 +68,11 @@ public class GetterBuilder {
     }
 
     /**
-     * 方法取值
+     * 方法取值器
      * 
      * @author zhujuan
      */
+    @SuppressWarnings("unused")
     private static class MethodGetter implements Getter {
         private final Method method;
 

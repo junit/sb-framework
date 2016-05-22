@@ -3,27 +3,27 @@ package org.chinasb.common.basedb;
 import java.util.List;
 
 /**
- * 基础数据管理服务接口
+ * 基础数据服务接口
  * 
  * @author zhujuan
  */
 public interface ResourceService {
     /**
-     * 获取基础数据
+     * 通过id获取基础数据
      * 
-     * @param id ID
+     * @param id 主健
      * @param clazz 基础数据类对象
-     * @return
+     * @return T
      */
     <T> T get(Object id, Class<T> clazz);
 
     /**
-     * 通过索引获取基础数据列表
+     * 通过索引键、值获取基础数据列表
      * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
-     * @param indexValues 索引值
-     * @return
+     * @param indexValues 索引值(顺序对应 {@link Index#order})
+     * @return List<T>
      */
     <T> List<T> listByIndex(String indexName, Class<T> clazz, Object... indexValues);
 
@@ -32,20 +32,20 @@ public interface ResourceService {
      * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
-     * @param pk 基础数据ID类对象
+     * @param pk 基础数据主键类对象
      * @param indexValues 索引值
-     * @return
+     * @return {@link List}			返回对应的索引ID列表
      */
     <T, PK> List<PK> listIdByIndex(String indexName, Class<T> clazz, Class<PK> pk,
             Object... indexValues);
 
     /**
-     * 通过索引获取基础数据的唯一记录
+     * 通过索引键、值获取基础数据的唯一记录
      * 
      * @param indexName 索引名称
      * @param clazz 基础数据类对象
-     * @param indexValues 索引值
-     * @return
+     * @param indexValues 索引值(顺序对应 {@link Index#order})
+     * @return T
      */
     <T> T getByUnique(String indexName, Class<T> clazz, Object... indexValues);
 
@@ -53,7 +53,7 @@ public interface ResourceService {
      * 获取全部基础数据列表
      * 
      * @param clazz 基础数据类对象
-     * @return
+     * @return List<T>
      */
     <T> List<T> listAll(Class<T> clazz);
 

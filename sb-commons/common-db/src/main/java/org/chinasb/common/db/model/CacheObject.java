@@ -9,7 +9,7 @@ import org.chinasb.common.utility.Constants;
  */
 public class CacheObject {
     /**
-     * 缓存值
+     * 缓存对象
      */
     private Object value;
     /**

@@ -18,7 +18,6 @@ import org.chinasb.common.socket.type.ResponseCode;
 import org.chinasb.common.socket.type.SessionType;
 import org.chinasb.common.utility.HashUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import io.netty.buffer.ByteBuf;

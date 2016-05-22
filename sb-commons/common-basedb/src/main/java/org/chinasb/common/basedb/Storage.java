@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.chinasb.common.basedb.ResourceServiceImpl.KeyBuilder;
 import org.chinasb.common.basedb.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ResourceUtils;
 
 /**
- * 基础数据存储
+ * 基础数据存储对象
  * 
  * @author zhujuan
  * @param <V>
@@ -45,7 +46,7 @@ public class Storage<V> {
      */
     private final String location;
     /**
-     * 资源阅读器
+     * 资源读取器
      */
     private final ResourceReader reader;
     /**
@@ -53,7 +54,7 @@ public class Storage<V> {
      */
     private final Getter identifier;
     /**
-     * 索引访问器映射集合Map<索引名称,索引访问器>
+     * 索引访问者映射集合Map<索引名称,索引访问者>
      */
     private final Map<String, IndexBuilder.IndexVisitor> indexVisitors;
     /**
@@ -65,7 +66,7 @@ public class Storage<V> {
      */
     private final Map<String, List<Object>> indexTable = new HashMap<String, List<Object>>();
     /**
-     * 基础数据ID列表
+     * 已排序的基础数据ID列表
      */
     private List<Object> idList = new ArrayList<Object>();
 
@@ -81,13 +82,13 @@ public class Storage<V> {
         this.resourceLocation = resourceLocation;
         this.clazz = clazz;
         Resource resource = (Resource) clazz.getAnnotation(Resource.class);
-        this.location = (this.resourceLocation + clazz.getSimpleName() + "." + resource.suffix());
+        this.location = this.resourceLocation + clazz.getSimpleName() + "." + resource.suffix();
         ResourceReader reader =
                 (ResourceReader) this.applicationContext.getBean(
                         resource.type() + "ResourceReader", ResourceReader.class);
         this.reader = reader;
-        identifier = GetterBuilder.createIdGetter(clazz);
-        indexVisitors = IndexBuilder.createIndexVisitors(clazz);
+        this.identifier = GetterBuilder.createIdGetter(clazz);
+        this.indexVisitors = IndexBuilder.createIndexVisitors(clazz);
     }
 
     /**
@@ -114,7 +115,7 @@ public class Storage<V> {
      * @return
      */
     public List<Object> getIdList() {
-        return Collections.unmodifiableList(idList);
+        return idList;
     }
 
     /**
@@ -138,7 +139,7 @@ public class Storage<V> {
      */
     public List<Object> getIndexIdList(String indexName, Object... indexValues) {
         String indexkey = getIndexKey(indexName, indexValues);
-        return Collections.unmodifiableList(indexTable.get(indexkey));
+        return indexTable.get(indexkey);
     }
 
     /**
@@ -159,7 +160,7 @@ public class Storage<V> {
      */
     public List<V> list(List<Object> idList) {
         List<V> resultList = new ArrayList<V>();
-        if ((idList != null) && (!idList.isEmpty())) {
+        if (idList != null && !idList.isEmpty()) {
             for (Object id : idList) {
                 V entity = get(id);
                 if (entity != null) {
@@ -167,7 +168,7 @@ public class Storage<V> {
                 }
             }
         }
-        return Collections.unmodifiableList(resultList);
+        return resultList;
     }
 
     /**
@@ -176,7 +177,7 @@ public class Storage<V> {
      * @return
      */
     public List<V> listAll() {
-        return Collections.unmodifiableList(new ArrayList<V>(dataTable.values()));
+        return new ArrayList<V>(dataTable.values());
     }
 
     /**
@@ -186,7 +187,7 @@ public class Storage<V> {
         try {
             URL resource = ClassUtils.getDefaultClassLoader().getResource(location);
             File file = resource != null ? ResourceUtils.getFile(resource) : null;
-            if ((file == null) || (!file.exists())) {
+            if (file == null || !file.exists()) {
                 resource = ResourceUtils.getURL(location);
             }
             if (resource == null) {
@@ -204,7 +205,7 @@ public class Storage<V> {
             Map<String, List<Object>> indexTable_copy = new HashMap<String, List<Object>>();
             while (it.hasNext()) {
                 V obj = it.next();
-                if ((obj instanceof InitializeBean)) {
+                if (obj instanceof InitializeBean) {
                     try {
                         ((InitializeBean) obj).afterPropertiesSet();
                     } catch (Exception e) {
@@ -263,7 +264,7 @@ public class Storage<V> {
     }
 
     /**
-     * 索引基础数据
+     * 索引基础数据处理
      * 
      * @param value 基础数据
      * @param indexTable 索引集合
@@ -326,11 +327,15 @@ public class Storage<V> {
                 }
             };
         }
+        
+        //索引排序
         for (List<Object> indexedIdList : indexTable.values()) {
-            if ((indexedIdList != null) && (!indexedIdList.isEmpty())) {
+            if (indexedIdList != null && !indexedIdList.isEmpty()) {
                 Collections.sort(indexedIdList, comparator);
             }
         }
+        
+        // id排序
         Collections.sort(idList, comparator);
     }
 }

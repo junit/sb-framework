@@ -6,21 +6,20 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.WrapFactory;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * js执行引擎
+ * Mozilla Rhino 公式解析器
  * 
  * @author zhujuan
  */
 public class Rhino {
     private static final ThreadLocal<Scriptable> THREAD_LOCALS = new ThreadLocal<Scriptable>();
     private static final LoadingCache<String, Script> SCRIPT_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(500).build(new CacheLoader<String, Script>() {
+            .maximumSize(512).build(new CacheLoader<String, Script>() {
                 @Override
                 public Script load(String expression) {
                     Context context = Context.enter();
@@ -35,24 +34,11 @@ public class Rhino {
      * @return
      */
     private static Scriptable getScope() {
-        Scriptable scope = (Scriptable) THREAD_LOCALS.get();
+        Scriptable scope = THREAD_LOCALS.get();
         if (scope == null) {
             ContextFactory global = ContextFactory.getGlobal();
             Context context = global.enterContext();
-            context.setWrapFactory(new WrapFactory() {
-                protected JavascriptWrapper coreWrapper = new CoreJavaScriptWrapper();
-
-                /**
-                 * wrapper an java object to javascript object.
-                 */
-                public Object wrap(Context cx, Scriptable scope, Object obj, Class staticType) {
-                    Object object = coreWrapper.wrap(cx, scope, obj, staticType);
-                    if (object != obj) {
-                        return object;
-                    }
-                    return super.wrap(cx, scope, obj, staticType);
-                }
-            });
+            context.setWrapFactory(new MapWarperFactory());
             scope = context.initStandardObjects();
             THREAD_LOCALS.set(scope);
         }
@@ -60,20 +46,20 @@ public class Rhino {
     }
 
     /**
-     * 执行脚本
+     * 计算公式
      * 
-     * @param expression
-     * @param ctx
-     * @return
+     * @param expression 公式
+     * @param ctx 上下文
+     * @return {@link Object}	返回值
      */
     public static Object invoke(String expression, Map<String, ?> ctx) {
         Script exp = SCRIPT_CACHE.getUnchecked(expression);
         Context context = Context.enter();
         try {
             Scriptable args = context.newObject(getScope());
-            if ((ctx != null) && (!ctx.isEmpty())) {
+            if (ctx != null && !ctx.isEmpty()) {
                 for (Map.Entry<String, ?> e : ctx.entrySet()) {
-                    args.put((String) e.getKey(), args, e.getValue());
+                    args.put(e.getKey(), args, e.getValue());
                 }
             }
             return exp.exec(context, args);

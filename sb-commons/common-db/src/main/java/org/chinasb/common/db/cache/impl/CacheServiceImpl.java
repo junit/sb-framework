@@ -37,19 +37,19 @@ public class CacheServiceImpl implements CachedService {
      */
     @Autowired(required = false)
     @Qualifier("dbcache.max_capacity_of_common_cache")
-    private Integer commonCacheSize;
+    private Integer commonCacheSize = 500000;
     /**
      * 实体缓存容量大小
      */
     @Autowired(required = false)
     @Qualifier("dbcache.max_capacity_of_entity_cache")
-    private Integer entityCacheSize;
+    private Integer entityCacheSize = 500000;
     /**
      * 实体缓存存活时间
      */
     @Autowired(required = false)
     @Qualifier("dbcache.ttl_of_entity_cache")
-    private Integer entityCacheTTL;
+    private Integer entityCacheTTL = ONE_MIN_MILISECONDS * 120;
 
     @Autowired
     private DbService dbService;
@@ -57,22 +57,11 @@ public class CacheServiceImpl implements CachedService {
     /**
      * 通用缓存
      */
-    private ConcurrentMap<String, Object> COMMON_CACHE;
+    private ConcurrentMap<String, Object> COMMON_CACHE = null;
     /**
      * 实体缓存
      */
-    private ConcurrentMap<String, CacheObject> ENTITY_CACHE;
-
-    /**
-     * 构造器
-     */
-    public CacheServiceImpl() {
-        commonCacheSize = Integer.valueOf(500000);
-        entityCacheSize = Integer.valueOf(500000);
-        entityCacheTTL = Integer.valueOf(ONE_MIN_MILISECONDS * 120);
-        COMMON_CACHE = null;
-        ENTITY_CACHE = null;
-    }
+    private ConcurrentMap<String, CacheObject> ENTITY_CACHE = null;
 
     /**
      * 缓存初始化
