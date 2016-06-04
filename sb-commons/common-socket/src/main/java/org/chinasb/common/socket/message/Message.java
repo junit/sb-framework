@@ -5,7 +5,7 @@ import java.io.Serializable;
 import org.chinasb.common.socket.codec.MessageType;
 
 /**
- * 消息对象
+ * 消息抽象
  * 
  * @author zhujuan
  *
@@ -23,10 +23,6 @@ public abstract class Message implements Serializable {
      */
     private int sn = DEFAULT_SN;
     /**
-     * 消息编码类型
-     */
-    private int messageType = MessageType.AMF3.ordinal();
-    /**
      * 功能模块
      */
     private int module;
@@ -35,9 +31,9 @@ public abstract class Message implements Serializable {
      */
     private int cmd;
     /**
-     * 消息时间
+     * 消息编码类型
      */
-    private long time = System.currentTimeMillis();
+    private int messageType = MessageType.AMF3.ordinal();
     /**
      * 消息内容
      */
@@ -59,24 +55,6 @@ public abstract class Message implements Serializable {
      */
     public void setSn(int sn) {
         this.sn = sn;
-    }
-
-    /**
-     * 获取消息类型
-     * 
-     * @return
-     */
-    public int getMessageType() {
-        return messageType;
-    }
-
-    /**
-     * 设置消息类型
-     * 
-     * @param messageType
-     */
-    public void setMessageType(int messageType) {
-        this.messageType = messageType;
     }
 
     /**
@@ -115,24 +93,25 @@ public abstract class Message implements Serializable {
         this.cmd = cmd;
     }
 
+
     /**
-     * 获取消息时间
+     * 获取消息类型
      * 
      * @return
      */
-    public long getTime() {
-        return time;
+    public int getMessageType() {
+        return messageType;
     }
 
     /**
-     * 设置消息时间
+     * 设置消息类型
      * 
-     * @param time
+     * @param messageType
      */
-    public void setTime(long time) {
-        this.time = time;
+    public void setMessageType(int messageType) {
+        this.messageType = messageType;
     }
-
+    
     /**
      * 获取消息内容
      * 

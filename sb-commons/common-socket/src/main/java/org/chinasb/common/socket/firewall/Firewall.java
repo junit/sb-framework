@@ -12,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import org.chinasb.common.socket.SessionManager;
 import org.chinasb.common.socket.config.ServerConfig;
 import org.chinasb.common.socket.type.SessionType;
+import org.chinasb.common.utility.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -27,101 +28,113 @@ import com.google.common.base.Strings;
 @Component
 public class Firewall {
     private static final Log LOGGER = LogFactory.getLog(Firewall.class);
+    
     @Autowired
     private SessionManager sessionManager;
+    
     /**
      * 每秒钟最大消息包数量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.packages.second")
-    private Integer maxPacksPerSecond = Integer.valueOf(64);
+    private Integer maxPacksPerSecond = 64;
+    
     /**
      * 每分钟最大消息包数量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.packages.minute")
-    private Integer maxPacksPerMinute = Integer.valueOf(1024);
+    private Integer maxPacksPerMinute = 1024;
+    
     /**
      * 每秒钟最大消息包流量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.bytes.second")
-    private Integer maxBytesPerSecond = Integer.valueOf(2048);
+    private Integer maxBytesPerSecond = 2048;
+    
     /**
      * 每分钟最大消息包流量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.bytes.minute")
-    private Integer maxBytesPerMinute = Integer.valueOf(65536);
+    private Integer maxBytesPerMinute = 65536;
+    
     /**
      * 可疑活动行为侦测次数限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.block.detect.count")
-    private Integer blockDetectCount = Integer.valueOf(3);
+    private Integer blockDetectCount = 3;
+    
     /**
      * IP封锁时间（分钟）
      */
     @Autowired(required = false)
     @Qualifier("firewall.block.ip.minutes")
-    private Integer blockIpMinutes = Integer.valueOf(5);
+    private Integer blockIpMinutes = 5;
+    
     /**
      * 用户封锁时间（分钟）
      */
     @Autowired(required = false)
     @Qualifier("firewall.block.user.minutes")
-    private Integer blockUserMinutes = Integer.valueOf(5);
+    private Integer blockUserMinutes = 5;
+    
     /**
-     * 客户端的活动数量限制
+     * 客户端的活跃数量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.clients.actives")
-    private Integer maxClientsActives = Integer.valueOf(4000);
+    private Integer maxClientsActives = 4000;
+    
     /**
      * 客户端的连接数量限制
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.clients.limit")
-    private Integer maxClientsLimit = Integer.valueOf(5000);
+    private Integer maxClientsLimit = 5000;
+    
     /**
      * 每秒钟最大消息校验失败次数
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.authcode.errors.second")
-    private Integer maxAuthCodeErrorsPerSecond = Integer.valueOf(64);
+    private Integer maxAuthCodeErrorsPerSecond = 64;
+    
     /**
      * 每分钟最大消息校验失败次数
      */
     @Autowired(required = false)
     @Qualifier("firewall.max.authcode.errors.minute")
-    private Integer maxAuthCodeErrorsPerMinute = Integer.valueOf(1024);
+    private Integer maxAuthCodeErrorsPerMinute = 1024;
     /**
-     * 客户端数量记录
+     * 客户端连接数量
      */
     private static final AtomicInteger CLIENTS = new AtomicInteger();
     /**
-     * 封锁的IP列表
+     * 黑名单, ip<->解除黑名单的结束时间.
      */
     private static ConcurrentHashMap<String, Long> BLOCKED_IPS =
             new ConcurrentHashMap<String, Long>(1);
     /**
-     * 封锁的玩家列表
+     * 黑名单, 用户id<->进入黑名单时间(毫秒)
      */
     private static ConcurrentHashMap<Long, Long> BLOCKED_PLAYER_IDS =
             new ConcurrentHashMap<Long, Long>(1);
     /**
-     * 可疑IP列表
+     * 可疑IP列表，ip<->次数
      */
     private static ConcurrentHashMap<String, AtomicInteger> SUSPICIOUS_IPS =
             new ConcurrentHashMap<String, AtomicInteger>(1);
     /**
-     * 可疑玩家列表
+     * 可疑玩家列表，用户id<->次数
      */
     private static ConcurrentHashMap<Long, AtomicInteger> SUSPICIOUS_PLAYERIDS =
             new ConcurrentHashMap<Long, AtomicInteger>(1);
 
     /**
-     * 获取客户端数量
+     * 获取客户端连接数量
      * 
      * @return
      */
@@ -130,7 +143,7 @@ public class Firewall {
     }
 
     /**
-     * 客户端数量计数增加1
+     * 客户端连接数量计数增加1
      * 
      * @return
      */
@@ -139,7 +152,7 @@ public class Firewall {
     }
 
     /**
-     * 客户端数量计数减少1
+     * 客户端连接数量计数减少1
      * 
      * @return
      */
@@ -183,7 +196,7 @@ public class Firewall {
      * @return
      */
     public boolean isBlocked(Channel session) {
-        return (isIpBlock(session)) || (isPlayerIdBlock(session));
+        return isIpBlock(session) || isPlayerIdBlock(session);
     }
 
     /**
@@ -197,10 +210,12 @@ public class Firewall {
         if (Strings.isNullOrEmpty(remoteIp)) {
             return false;
         }
+        
         Long blockedTime = (Long) BLOCKED_IPS.get(remoteIp);
         if (blockedTime == null) {
             return false;
         }
+        
         if (blockedTime.longValue() <= System.currentTimeMillis()) {
             BLOCKED_IPS.remove(remoteIp);
             return false;
@@ -220,10 +235,12 @@ public class Firewall {
         if (blockedTime == null) {
             return false;
         }
+        
         if (blockedTime.longValue() <= System.currentTimeMillis()) {
             BLOCKED_PLAYER_IDS.remove(Long.valueOf(playerId));
             return false;
         }
+        
         return true;
     }
 
@@ -334,17 +351,21 @@ public class Firewall {
         if (session == null) {
             return false;
         }
+        
         if (isBlocked(session)) {
             return true;
         }
+        
         if (amount <= 0) {
             return false;
         }
+        
         FloodRecord floodCheck = session.attr(SessionType.FLOOD_RECORD_KEY).get();
         if (floodCheck == null) {
             session.attr(SessionType.FLOOD_RECORD_KEY).setIfAbsent(new FloodRecord());
             floodCheck = session.attr(SessionType.FLOOD_RECORD_KEY).get();
         }
+        
         boolean suspicious = false;
         if (type == FirewallType.BYTE) {
             suspicious = avalidateWithBytes(amount, floodCheck);
@@ -353,6 +374,7 @@ public class Firewall {
         } else if (type == FirewallType.AUTH_CODE) {
             suspicious = avalidateWithAuthcode(amount, floodCheck);
         }
+        
         boolean isBlock = false;
         if (suspicious) {
             String remoteIp = sessionManager.getRemoteIp(session);
@@ -363,6 +385,7 @@ public class Firewall {
                     SUSPICIOUS_IPS.putIfAbsent(remoteIp, new AtomicInteger());
                     blocks = (AtomicInteger) SUSPICIOUS_IPS.get(remoteIp);
                 }
+                
                 if (blocks.incrementAndGet() >= blockDetectCount.intValue()) {
                     blocks.set(0);
                     isBlock = true;
@@ -374,6 +397,7 @@ public class Firewall {
                     SUSPICIOUS_PLAYERIDS.putIfAbsent(playerId, new AtomicInteger());
                     blocks = (AtomicInteger) SUSPICIOUS_PLAYERIDS.get(playerId);
                 }
+                
                 if (blocks.incrementAndGet() >= blockDetectCount.intValue()) {
                     blocks.set(0);
                     isBlock = true;
@@ -415,10 +439,10 @@ public class Firewall {
      */
     private boolean avalidateWithAuthcode(int amount, FloodRecord floodCheck) {
         long currentMillis = System.currentTimeMillis();
-        long currMinue = currentMillis / 60000L;
-        long currSececond = currentMillis / 1000L;
-        long lastSec = floodCheck.getLastAuthCodeTime() / 1000L;
-        long lastMin = floodCheck.getLastAuthCodeTime() / 60000L;
+        long currMinue = currentMillis / Constants.ONE_MINUTE_MILLISECOND;
+        long currSececond = currentMillis / Constants.ONE_SECOND_MILLISECOND;
+        long lastSec = floodCheck.getLastAuthCodeTime() / Constants.ONE_SECOND_MILLISECOND;
+        long lastMin = floodCheck.getLastAuthCodeTime() / Constants.ONE_MINUTE_MILLISECOND;
         floodCheck.setLastAuthCodeTime(currentMillis);
         if (lastMin == currMinue) {
             floodCheck.addLastMinuteAuthCodes(amount);
@@ -431,6 +455,7 @@ public class Firewall {
             floodCheck.setLastMinuteAuthCodes(amount);
             floodCheck.setLastSecondAuthCodes(amount);
         }
+        
         int lastMinuteAuthCodes = floodCheck.getLastMinuteAuthCodes();
         int lastSecondAuthCodes = floodCheck.getLastSecondAuthCodes();
         if (lastMinuteAuthCodes >= maxAuthCodeErrorsPerMinute.intValue()) {
@@ -463,10 +488,10 @@ public class Firewall {
      */
     private boolean avalidateWithPackages(int amount, FloodRecord floodCheck) {
         long currentMillis = System.currentTimeMillis();
-        long currMinue = currentMillis / 60L;
-        long currSececond = currentMillis / 1000L;
-        long lastMin = floodCheck.getLastPackTime() / 60L;
-        long lastSec = floodCheck.getLastPackTime() / 1000L;
+        long currMinue = currentMillis / Constants.ONE_MINUTE_SECOND;
+        long currSececond = currentMillis / Constants.ONE_SECOND_MILLISECOND;
+        long lastMin = floodCheck.getLastPackTime() / Constants.ONE_MINUTE_SECOND;
+        long lastSec = floodCheck.getLastPackTime() / Constants.ONE_SECOND_MILLISECOND;
         floodCheck.setLastPackTime(currentMillis);
         if (lastMin == currMinue) {
             floodCheck.addLastMinutePacks(amount);
@@ -509,10 +534,10 @@ public class Firewall {
      */
     private boolean avalidateWithBytes(int amount, FloodRecord floodCheck) {
         long currentMillis = System.currentTimeMillis();
-        long currMinue = currentMillis / 60000L;
-        long currSececond = currentMillis / 1000L;
-        long lastSecond = floodCheck.getLastSizeTime() / 1000L;
-        long lastMinue = floodCheck.getLastSizeTime() / 60000L;
+        long currMinue = currentMillis / Constants.ONE_MINUTE_MILLISECOND;
+        long currSececond = currentMillis / Constants.ONE_SECOND_MILLISECOND;
+        long lastSecond = floodCheck.getLastSizeTime() / Constants.ONE_SECOND_MILLISECOND;
+        long lastMinue = floodCheck.getLastSizeTime() / Constants.ONE_MINUTE_MILLISECOND;
         floodCheck.setLastSizeTime(currentMillis);
         if (lastMinue == currMinue) {
             floodCheck.addLastMinuteSizes(amount);
@@ -561,12 +586,14 @@ public class Firewall {
                 clientType = ClientType.MIS;
             }
         }
+        
         if (clientType == ClientType.ANONYMOUS) {
             Long playerId = sessionManager.getPlayerId(session);
             if ((playerId != null) && (playerId.longValue() > 0L)) {
                 clientType = ClientType.LOGIN_USER;
             }
         }
+        
         session.attr(SessionType.CLIENT_TYPE_KEY).set(clientType);
         return clientType;
     }
@@ -640,7 +667,7 @@ public class Firewall {
      * @return
      */
     public int getBlockIpMinutesOfMilliSecond() {
-        return blockIpMinutes.intValue() * 60000;
+        return blockIpMinutes.intValue() * Constants.ONE_MINUTE_MILLISECOND;
     }
 
     /**
@@ -649,7 +676,7 @@ public class Firewall {
      * @return
      */
     public int getBlockMinutesOfMilliSecond() {
-        return blockUserMinutes.intValue() * 60000;
+        return blockUserMinutes.intValue() * Constants.ONE_MINUTE_MILLISECOND;
     }
 
     /**

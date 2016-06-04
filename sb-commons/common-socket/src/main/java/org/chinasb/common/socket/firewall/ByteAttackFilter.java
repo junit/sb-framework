@@ -43,6 +43,7 @@ public class ByteAttackFilter extends ChannelInboundHandlerAdapter {
                 }
                 blocked = firewall.blockedByBytes(session, length);
             }
+            
             if (blocked) {
                 String remoteIp = sessionManager.getRemoteIp(session);
                 long playerId = sessionManager.getPlayerId(session).longValue();

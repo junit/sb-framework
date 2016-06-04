@@ -16,7 +16,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
- * 消息编码器
+ * 返回消息编码器
  * 
  * @author zhujuan
  *
@@ -32,9 +32,9 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
             return;
         }
 
-        if ((message instanceof ByteBuf)) {
+        if (message instanceof ByteBuf) {
             out.writeBytes((ByteBuf) message);
-        } else if ((message instanceof byte[])) {
+        } else if (message instanceof byte[]) {
             byte[] bytes = (byte[]) message;
             out.writeBytes(bytes);
         } else {
@@ -74,13 +74,13 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
     }
 
     /**
-     * 消息编码
+     * 消息对象转换成字节数组
      * 
      * @param message 消息对象
      * @return
      */
     public byte[] encodeResponse(Object message) {
-        if ((message instanceof Response)) {
+        if (message instanceof Response) {
             Response response = (Response) message;
             response.setTime(System.currentTimeMillis());
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -92,24 +92,24 @@ public class ResponseEncoder extends MessageToByteEncoder<Object> {
                 int cmd = response.getCmd();
 
                 dataOutputStream.writeInt(sn);
-                dataOutputStream.writeInt(messageType);
-                dataOutputStream.writeInt(module);
-                dataOutputStream.writeInt(cmd);
-                dataOutputStream.writeDouble(response.getTime());
+                dataOutputStream.writeShort(module);
+                dataOutputStream.writeShort(cmd);
+                dataOutputStream.writeByte(messageType);
+                dataOutputStream.writeLong(response.getTime());
 
-                Object value = response.getValue();
-                if (value != null) {
-                    byte[] bytes = transferByteArray(messageType, value);
-                    if (bytes == null) {
-                        response.setStatus(ResponseCode.RESPONSE_CODE_ERROR);
-                        dataOutputStream.writeInt(response.getStatus());
-                    } else {
-                        dataOutputStream.writeInt(response.getStatus());
-                        dataOutputStream.write(bytes);
-                    }
-                } else {
-                    dataOutputStream.writeInt(response.getStatus());
-                }
+				Object value = response.getValue();
+				if (value != null) {
+					byte[] bytes = transferByteArray(messageType, value);
+					if (bytes == null) {
+						response.setStatus(ResponseCode.RESPONSE_CODE_ERROR);
+						dataOutputStream.writeInt(response.getStatus());
+					} else {
+						dataOutputStream.writeInt(response.getStatus());
+						dataOutputStream.write(bytes);
+					}
+				} else {
+					dataOutputStream.writeInt(response.getStatus());
+				}
                 return byteArrayOutputStream.toByteArray();
             } catch (Exception ex) {
                 LOGGER.error("ERROR", ex);

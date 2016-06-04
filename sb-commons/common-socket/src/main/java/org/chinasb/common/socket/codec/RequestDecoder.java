@@ -29,19 +29,18 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
 
 /**
- * <p>
- * 消息解码器
- * </p>
- * <p>
- * Packet = [byte]PacketHeader(6 byte) + [bytes]PacketBody(n bytes)
- * </p>
- * <p>
- * PacketHeader: [short]PacketFlag(2 bytes) + [int]PacketBodyLength(4 bytes)
- * </p>
- * <p>
- * PacketBody: [int]authCode(4 bytes) + [int]sn(4 bytes) + [byte]messageType(1 byte) + [int]module(4
- * bytes) + [int]cmd(4 bytes)}(20 bytes) + [bytes]data(n bytes)
- * </p>
+ * 
+ * <p>请求消息解码器
+ * <p>数据包 = 包头(6 byte) + 包体(n bytes)
+ * <p>包头: [short]包头头标识(2 bytes) + [int]包体长度(4 bytes)
+ * <p>包体:
+ * <p>[int]校验码authCode(4 bytes) 
+ * <p>[int]流水号sn(4 bytes) 
+ * <p>[byte]消息类型messageType(1 bytes) 
+ * <p>[byte]压缩类型compressionType(1 bytes) 
+ * <p>[short]功能模块module(2 bytes) 
+ * <p>[short]模块指令cmd(2 bytes)
+ * <p>[bytes]消息内容data(n bytes)
  * 
  * @author zhujuan
  *
@@ -64,9 +63,9 @@ public class RequestDecoder extends ByteToMessageDecoder {
      */
     public static final int PACKAGE_HEADER_LEN = 6;
     /**
-     * 数据包头长度
+     * 数据包头总长度
      */
-    public static final int HEADER_LEN = 17;
+    public static final int HEADER_LEN = 13;
     /**
      * 忽略校验码字节数量
      */
@@ -78,7 +77,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
     /**
      * SOCKET安全策略内容
      */
-    public static final byte[] policyResponse =
+    public static final byte[] POLICY_RESPONSE =
             "<?xml version=\"1.0\"?><cross-domain-policy><site-control permitted-cross-domain-policies=\"all\"/><allow-access-from domain=\"*\" to-ports=\"*\"/></cross-domain-policy>\0"
                     .getBytes(charset);
 
@@ -89,22 +88,26 @@ public class RequestDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    	Channel session = ctx.channel();
         // 通过解码上下文信息处理继续接收完整的数据包，优化解码过程
-        Attribute<CodecContext> codecContextAttribute = ctx.attr(SessionType.CODEC_CONTEXT_KEY);
+        Attribute<CodecContext> codecContextAttribute = session.attr(SessionType.CODEC_CONTEXT_KEY);
         CodecContext codecContext = codecContextAttribute.get();
-        if ((codecContext != null) && (codecContext.isSameState(DecoderState.WAITING_DATA))) {
+        if (codecContext != null && codecContext.isSameState(DecoderState.WAITING_DATA)) {
             // 等待数据包所需字节数量
             if (in.readableBytes() < codecContext.getBytesNeeded()) {
                 return;
             }
+            
             // 读取数据
             byte[] buffer = new byte[codecContext.getBytesNeeded()];
             in.readBytes(buffer);
+            
             // 解码
-            Request reqest = decodeBuffer(ctx, buffer);
+            Request reqest = decodeBuffer(session, buffer);
             if (reqest != null) {
                 out.add(reqest);
             }
+            
             // 进入解码就绪状态，等待新的解码开始
             codecContext.setState(DecoderState.READY);
             // 移除解码上下文信息
@@ -113,72 +116,78 @@ public class RequestDecoder extends ByteToMessageDecoder {
         }
 
         // 客户端首次数据请求处理
-        Attribute<Boolean> firstRequestAttribute = ctx.attr(SessionType.FIRST_REQUEST_KEY);
+        Attribute<Boolean> firstRequestAttribute = session.attr(SessionType.FIRST_REQUEST_KEY);
         Boolean firstRequest = firstRequestAttribute.get();
         if (firstRequest == null) {
             firstRequest = Boolean.valueOf(true);
             firstRequestAttribute.set(firstRequest);
         }
+        
         // 首次请求发送SOCKET安全策略
         if (firstRequest.booleanValue()) {
-            in.markReaderIndex();
             if (!in.isReadable()) {
-                in.resetReaderIndex();
                 return;
             }
+            
+            in.markReaderIndex();
             byte firstByte = in.readByte();
-            in.resetReaderIndex();
-            if (firstByte == 60) {
+            if (firstByte == '<') {
+            	in.resetReaderIndex();
                 if (in.readableBytes() < POLICY_REQUEST.length) {
                     return;
                 }
-                in.markReaderIndex();
+                
                 byte[] byteArray = new byte[POLICY_REQUEST.length];
                 in.readBytes(byteArray);
                 if (Arrays.equals(byteArray, POLICY_REQUEST)) {
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info(String.format("SESSION[%s] 发送SOCKET安全策略...",
-                                new Object[] {String.valueOf(ctx.channel().id())}));
+                                new Object[] {String.valueOf(session.id())}));
                     }
                     firstRequest = Boolean.valueOf(false);
                     firstRequestAttribute.set(firstRequest);
-                    ctx.channel().writeAndFlush(policyResponse);
+                    session.writeAndFlush(POLICY_RESPONSE);
                     return;
                 }
-                in.resetReaderIndex();
             }
+            in.resetReaderIndex();
             firstRequest = Boolean.valueOf(false);
             firstRequestAttribute.set(firstRequest);
         }
+        
         // 处理包头解码（如果包头存在异常，读掉找到包头前的所有字节）
         for (;;) {
             if (in.readableBytes() < PACKAGE_HEADER_LEN) {
                 return;
             }
+            
             in.markReaderIndex();
             if (in.readShort() == PACKAGE_HEADER_ID) {
                 break;
             }
+            
             in.resetReaderIndex();
             in.readByte();
         }
+        
         // 处理数据包大小限制
         int len = in.readInt();
         if ((len <= 0) || (len >= 65536)) {
             LOGGER.error(String.format("Body length: %d", new Object[] {Integer.valueOf(len)}));
             return;
         }
+        
         // 处理等待数据包所需字节数量，如果第一次接收数据包不完整则设置解码上下文信息，优化下一次解码过程
         if (in.readableBytes() < len) {
             codecContext = CodecContext.valueOf(len, DecoderState.WAITING_DATA);
             codecContextAttribute.set(codecContext);
             return;
         }
+        
         // 读取数据
         byte[] buffer = new byte[len];
         in.readBytes(buffer);
-        // 解码
-        Request request = decodeBuffer(ctx, buffer);
+        Request request = decodeBuffer(session, buffer);
         if (request != null) {
             out.add(request);
         }
@@ -187,21 +196,23 @@ public class RequestDecoder extends ByteToMessageDecoder {
     /**
      * 解码数据包
      * 
+     * @param session
      * @param buffer
-     * @param ctx
      * @return
      */
-    public Request decodeBuffer(ChannelHandlerContext ctx, byte[] buffer) {
+    public Request decodeBuffer(Channel session, byte[] buffer) {
         if (buffer == null) {
             LOGGER.error("buffer 为空异常");
             return null;
         }
+        
         int bufferSize = buffer.length;
         if (bufferSize < HEADER_LEN) {
             LOGGER.error(String.format("协议解析错误, 数据长度小于包头长度 [bufferSize: %d, HEADER_LEN: %d]",
                     new Object[] {Integer.valueOf(bufferSize), Integer.valueOf(HEADER_LEN)}));
             return null;
         }
+        
         DataInputStream dataInputStream = null;
         ByteArrayInputStream byteArrayInputStream = null;
         byte[] authData = Arrays.copyOfRange(buffer, IGNORE_AUTH_CODE_BYTES, bufferSize);
@@ -210,12 +221,11 @@ public class RequestDecoder extends ByteToMessageDecoder {
             dataInputStream = new DataInputStream(byteArrayInputStream);
             int authCode = dataInputStream.readInt();
             int sn = dataInputStream.readInt();
-            byte messageType = dataInputStream.readByte();
-            int module = dataInputStream.readInt();
-            int cmd = dataInputStream.readInt();
+            int module = dataInputStream.readShort();
+            int cmd = dataInputStream.readShort();
+            int messageType = dataInputStream.readByte();
             int calcAuthCode = (int) HashUtils.fnv32(authData, 0, authData.length);
             if (authCode != calcAuthCode) {
-                Channel session = ctx.channel();
                 LOGGER.error(String
                         .format("协议解析FVN Hash不匹配: [sn: %d, module: %d, cmd: %d, authCode: %d, calcAuthCode:%d]",
                                 new Object[] {Integer.valueOf(sn), Integer.valueOf(module),
@@ -232,6 +242,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
                 }
                 return null;
             }
+            
             Request request = Request.valueOf(sn, module, cmd, messageType);
             if (bufferSize > HEADER_LEN) {
                 byte[] byteArray = new byte[bufferSize - HEADER_LEN];
@@ -242,16 +253,18 @@ public class RequestDecoder extends ByteToMessageDecoder {
                             "解析协议错误: [sn: %d, module: %d, cmd: %d]",
                             new Object[] {Integer.valueOf(sn), Integer.valueOf(module),
                                     Integer.valueOf(cmd)}));
-                    ctx.channel().writeAndFlush(
+                    session.writeAndFlush(
                             Response.valueOf(sn, module, cmd, messageType,
                                     ResponseCode.RESPONSE_CODE_RESOLVE_ERROR));
                     return null;
                 }
                 request.setValue(value);
             }
+            
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(request);
             }
+            
             return request;
         } catch (Exception ex) {
             LOGGER.error("解码异常: ", ex);
@@ -263,6 +276,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
                     LOGGER.error("DataInputStream.close() error: " + ex.getMessage());
                 }
             }
+            
             if (byteArrayInputStream != null) {
                 try {
                     byteArrayInputStream.close();
@@ -270,6 +284,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
                     LOGGER.error("ByteArrayInputStream.close() error: " + ex.getMessage());
                 }
             }
+            
             dataInputStream = null;
             byteArrayInputStream = null;
         }
@@ -277,7 +292,7 @@ public class RequestDecoder extends ByteToMessageDecoder {
     }
 
     /**
-     * 转换消息对象
+     * 字节数组转换成消息对象
      * 
      * @param module 功能模块
      * @param cmd 模块指令

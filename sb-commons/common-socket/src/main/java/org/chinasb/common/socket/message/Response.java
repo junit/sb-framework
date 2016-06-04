@@ -20,6 +20,49 @@ public class Response extends Message implements Serializable {
     private int status = ResponseCode.RESPONSE_CODE_SUCCESS;
 
     /**
+     * 消息时间
+     */
+    private long time = System.currentTimeMillis();
+    
+    /**
+     * 获取消息时间
+     * 
+     * @return
+     */
+    public long getTime() {
+        return time;
+    }
+
+    /**
+     * 设置消息时间
+     * 
+     * @param time
+     */
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    /**
+     * 获取消息状态
+     * 
+     * @return
+     */
+    public int getStatus() {
+        return this.status;
+    }
+
+    /**
+     * 设置消息状态
+     * 
+     * @param status
+     * @return
+     */
+    public Response setStatus(int status) {
+        this.status = status;
+        return this;
+    }
+
+    /**
      * 获取一个默认的消息对象
      * 
      * @param module 功能模块
@@ -112,26 +155,6 @@ public class Response extends Message implements Serializable {
         Response response = valueOf(sn, module, cmd, messageType, status);
         response.setValue(value);
         return response;
-    }
-
-    /**
-     * 获取消息状态
-     * 
-     * @return
-     */
-    public int getStatus() {
-        return this.status;
-    }
-
-    /**
-     * 设置消息状态
-     * 
-     * @param status
-     * @return
-     */
-    public Response setStatus(int status) {
-        this.status = status;
-        return this;
     }
 
     @Override
