@@ -36,10 +36,9 @@ import io.netty.util.Attribute;
  * <p>包体:
  * <p>[int]校验码authCode(4 bytes) 
  * <p>[int]流水号sn(4 bytes) 
- * <p>[byte]消息类型messageType(1 bytes) 
- * <p>[byte]压缩类型compressionType(1 bytes) 
  * <p>[short]功能模块module(2 bytes) 
  * <p>[short]模块指令cmd(2 bytes)
+ * <p>[byte]消息类型messageType(1 bytes) 
  * <p>[bytes]消息内容data(n bytes)
  * 
  * @author zhujuan
